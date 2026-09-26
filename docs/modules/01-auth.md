@@ -39,7 +39,13 @@ email_verification_tokens,password_reset_tokens}.sql`.
   refresh. Token tanpa `sid` (lama) kekal sah dan langkau semakan keluarga.
 - **Pembatalan** menulis senarai tolak KV selepas D1 komit
   ([shared](./00-shared.md)): logout / batal sesi / reuse → `rv:sid:*`;
-  `logout-all` / reset kata laluan → `rv:user:*`. Refresh sentiasa semak D1.
+  `logout-all` / reset kata laluan → `rv:user:*` (cutoff ms, claim `iat_ms`).
+  Refresh sentiasa semak D1, termasuk ban (→ 403).
+- **Logout** memadam seluruh keluarga peranti, bukan satu baris (`00001` §8.7).
+- **Rotasi refresh** = satu `db.batch([INSERT … SELECT, UPDATE … RETURNING])`
+  dengan guard sama → sama ada guna-lama + cipta-baharu, atau tiada apa.
+- **Reset kata laluan** = satu batch (tukar hash, padam semua refresh,
+  tuntut token) → atomik; kedua serentak ditolak `pautan tidak sah`.
 - **Refresh**: 32 bait legap, disimpan SHA-256, TTL `REFRESH_TOKEN_TTL_DAYS`
   (30). Rotasi sekali-guna **atomik**: tuntut token lama + masukkan token
   baharu dalam satu `db.batch()`. Reuse token yang sudah digunakan →

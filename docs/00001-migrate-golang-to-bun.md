@@ -420,7 +420,21 @@ Setiap satu mesti disemak dengan pemilik produk sebelum cutover.
    pemadaman akaun sampai ke semua edge dalam ~60 s (serta-merta di lokasi
    yang sama). `/auth/refresh` kekal serta-merta melalui D1. Lihat
    `modules/00-shared.md`.
-7. **Headless/`scheduled`**: job latar yang di `marc_go` jalan pada setiap
+7. **Logout memadam seluruh keluarga peranti.** `marc_go` memadam SATU
+   baris token; baris yang sudah dirotasi kekal, jadi peranti yang log keluar
+   masih tersenarai dalam `/me/sessions` dan access token hidup ≤15 minit.
+8. **`/auth/refresh` menyemak ban dalam D1** → 403 `akaun anda sedang
+   digantung` (marc_go hanya menyemak di `requireAuth`).
+9. **Kata laluan > 72 bait** (≤72 aksara tetapi berbilang-bait) → 400
+   `Kata laluan terlalu panjang…` (marc_go: 500 kerana bcrypt Go membaling
+   ralat; bcryptjs akan memotong senyap).
+10. **Pautan token tidak dilog di produksi** bila emel belum dikonfigur
+    (marc_go melognya sentiasa - token dalam log = kebocoran). Development:
+    kekal dilog.
+11. **Claim JWT tambahan `iat_ms`** - ketepatan milisaat untuk `logout-all`
+    / reset (tanpanya token yang dikeluarkan dalam saat yang sama terlepas).
+    Aditif; token marc_go tanpa `iat_ms` kekal sah.
+12. **Headless/`scheduled`**: job latar yang di `marc_go` jalan pada setiap
    instance tanpa kunci teragih, di D1 berjalan sekali per cron. Sama
    keputusan, kurang kerja.
 

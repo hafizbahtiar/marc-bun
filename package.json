@@ -23,7 +23,9 @@
     "secrets:push": "bun scripts/secrets-push.ts"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "hono": "^4.13.9",
+    "jose": "^6.2.12",
     "zod": "^4.6.5"
   },
   "devDependencies": {

@@ -193,8 +193,10 @@ Fail yang tiada keperluan tidak dicipta - feature kecil boleh jadi
 3. **Baca**: melalui fungsi eksport pemilik, dengan dua pengecualian yang
    mesti ditanda `-- cross-read: <jadual> (<sebab>)` dalam SQL:
    (a) subquery dalam statement yang **mesti atomik** (cth semakan kapasiti
-   `registrations` membaca `activities`), (b) `dashboard`, satu-satunya
-   read-model agregat.
+   `registrations` membaca `activities`; `profile.createInitial` membaca id
+   peranan `ahli`), (b) `dashboard`, satu-satunya read-model agregat,
+   (c) `JOIN` baca melalui FK ke jadual rujukan kecil (cth `profiles → roles`
+   untuk kategori peranan). Tulisan merentas feature tetap dilarang.
 4. **Graf kebergantungan asiklik.** Kitaran dipecahkan dengan **D**: feature
    hilir mengisytiharkan jenis *port* (`type FeeExemption = (userId) =>
    Promise<boolean>`) dan `app.ts` menyambungkan pelaksanaan feature lain.

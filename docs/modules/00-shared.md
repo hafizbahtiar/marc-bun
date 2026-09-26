@@ -15,6 +15,11 @@ itu.
 | Fail | Tanggungjawab |
 |---|---|
 | `shared/types.ts` | `AppEnv` (Bindings + Variables Hono) |
+| `shared/crypto.ts` | `opaqueToken()` (32 bait base64url), `sha256Hex()`, `safeEqual()` masa-tetap |
+| `shared/jwt.ts` | `signAccess` / `verifyAccess` (HS256 dipin; `sub`, `sid`, `iat`, `iat_ms`) |
+| `shared/revocation.ts` | senarai tolak KV: `revokeSessions`, `revokeUser`, `setBan`/`clearBan`, `rejection` |
+| `shared/middleware/cors.ts` | `cors(methods)` - pariti tepat CORS per-laluan marc_go |
+| `shared/email.ts` | `resendEmail` (disuntik sebagai `SendEmail`), `escapeHtml` |
 | `shared/config.ts` | Zod atas `env`: wajib vs pilihan, tiga tingkah laku "kosong" (`00000` §4) |
 | `shared/http.ts` | `ApiError(status, mesej)`, envelope `{"error": …}`, `onError`, `notFound`, `parseBody(schema)` |
 | `shared/middleware/auth.ts` | `requireAuth`, `optionalAuth`, `requireApproved`, `requireVerified` |
@@ -26,7 +31,6 @@ itu.
 | `shared/concurrency.ts` | `expectedUpdatedAt(body)` (400 bila tiada/tak sah) + `staleWrite()` → 409 `{"error", "code": "stale_write"}` |
 | `shared/authz.ts` | `isManagement`, `isAtLeastRole`, `roleRank` |
 | `shared/audit.ts` | `auditStmt(db, entry)` - pulangkan **statement**, bukan tulis; pemanggil masukkan ke `db.batch()` (R2) + `diff(before, after)` |
-| `shared/email.ts` | Resend `POST https://api.resend.com/emails` via `fetch`; no-op senyap bila `RESEND_API_KEY`/`EMAIL_FROM` kosong (pariti `marc_go`) |
 | `shared/push.ts` | OneSignal via `fetch`; dipanggil oleh consumer queue sahaja |
 | `shared/pdf/` | `pdf-lib`: `textFits()`/`clip()`, pengesahan WinAnsi (R11), QR |
 | `shared/phone.ts`, `shared/disposable-email.ts` | port tulen, ujian dipindah baris-demi-baris |
@@ -51,7 +55,7 @@ baharu): `hono/request-id`, `hono/body-limit`, `hono/cors`.
 |---|---|
 | IP klien | `c.req.header('CF-Connecting-IP')` sahaja. Tiada senarai proksi dipercayai (itu kerja Railway di `marc_go`). Dipakai oleh had kadar, `consumed_ip` refresh, audit. |
 | JWT | `jwtVerify(token, key, { algorithms: ['HS256'] })` - **pin algoritma**. |
-| Banding rahsia | `crypto.subtle.timingSafeEqual` (webhook Telegram, HMAC Stripe) - tidak pernah `===`. |
+| Banding rahsia | `safeEqual()` (`shared/crypto.ts`, masa-tetap) - tidak pernah `===`. Bukan `crypto.subtle.timingSafeEqual`: ia hanya wujud dalam workerd, ujian berjalan dalam Bun. |
 | `Date.now()` | Beku sepanjang kerja CPU dalam satu permintaan (mitigasi Spectre), hanya bergerak selepas I/O. Selamat untuk cap masa; jangan guna untuk ukur prestasi dalam kod. |
 | State global | Tiada cache/pembolehubah boleh-ubah peringkat modul. Isolate dikongsi antara permintaan dan dikitar semula bila-bila. |
 | `ctx.waitUntil` | Hanya untuk kerja kecil selepas respons (tulis KV senarai tolak, log). Kerja fan-out = Queue. |
@@ -79,7 +83,7 @@ ditulis semasa pembatalan (jarang), dibaca di edge (murah):
 | Kunci KV | Ditulis bila | Nilai | Tamat |
 |---|---|---|---|
 | `rv:sid:<familyId>` | `DELETE /me/sessions/:id`, `/me/sessions/revoke`, `/auth/logout`, reuse-detection | `1` | TTL access (900 s) + 60 s |
-| `rv:user:<userId>` | `/auth/logout-all`, reset kata laluan, pemadaman akaun | `iat` potongan (unix s) - token dengan `iat` lebih awal ditolak | TTL access + 60 s |
+| `rv:user:<userId>` | `/auth/logout-all`, reset kata laluan, pemadaman akaun | cutoff unix **ms** - token dengan `iat_ms <= cutoff` ditolak (token marc_go tanpa `iat_ms`: `iat × 1000`) | TTL access + 60 s |
 | `ban:<userId>` | ban / unban | `1` | `expiration` = `ban_expires_at`; tiada = kekal; unban = `delete` |
 
 `requireAuth` = sahkan JWT (tiada I/O) → **satu** bulk `KV.get([3 kunci])` →

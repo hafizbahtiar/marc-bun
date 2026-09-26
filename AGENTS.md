@@ -110,7 +110,7 @@ Butiran: `docs/00000-foundation.md` §5.
   tulis migrasi baharu. Expand → deploy → contract.
 
 **Keselamatan**
-- JWT `algorithms: ['HS256']`. Rahsia dibanding dengan `timingSafeEqual`.
+- JWT `algorithms: ['HS256']`. Rahsia dibanding dengan `safeEqual()` (`shared/crypto.ts`).
 - Query milik-sendiri sentiasa diskop dengan `userId` daripada token, tidak
   pernah daripada URL/body.
 - Respons dibina daripada DTO eksplisit - tiada spread baris DB (bocor PII).

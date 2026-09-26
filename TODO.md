@@ -9,9 +9,9 @@ Migrasi, skrip, arahan: [`docs/00002-tooling.md`](./docs/00002-tooling.md).
 Sumber kebenaran sepanjang migrasi ialah **kod** `../marc_go`, bukan
 dokumennya - `ARCHITECTURE.md`/`DATABASE.md` di sana sudah tertinggal.
 
-Status: **Fasa 1 siap; Fasa 0 hampir siap** (lokal). Scaffold features-first, semua
+Status: **Fasa 2 siap; Fasa 0 hampir siap** (lokal). Scaffold features-first, semua
 binding, `shared/` asas, arahan, CI, skema D1; `bun run check` hijau. Belum: remote git,
-rahsia prod (`.env`), deploy pertama. Seterusnya: Fasa 2 (`auth`, `telegram`).
+rahsia prod (`.env`), deploy pertama. Seterusnya: Fasa 3 (`profile`, `members`, …).
 
 Setiap fasa selesai bila: respons padan `marc_go` (status + bentuk JSON +
 mesej), tiada medan PII baharu, `bun run check` hijau, dan **dokumen
@@ -112,10 +112,23 @@ Dijumpai semasa ujian: memadam ahli yang ada derma dengan `donor_email`
 NULL menggagalkan `donations_traceable`. `marc_go` terlepas kerana ia
 menyimpan `''`. Ditangani oleh `payments.detach()` (Fasa 3/7).
 
-## Fasa 2 - `auth`, `telegram`
+## Fasa 2 - `auth`, `telegram` ✅
 
-- [ ] `docs/modules/01-auth.md`, `02-telegram.md`.
-- [ ] Ujian: rotasi, reuse-detection, klaim serentak, `logout-all` serta-merta.
+Siap 2026-09-26. `features/auth` (register, login, refresh, logout,
+logout-all, pengesahan emel JSON + pautan HTML, reset kata laluan, 3 laluan
+sesi), `features/telegram` (token, nyahikat, webhook), serta bahagian
+`profile` (gate `requireApproved`/`requireVerified`, operasi `profiles`) dan
+`blocked-email-domains` (`isBlocked`) yang diperlukan. `shared/`: jwt,
+revocation (KV), crypto, email (Resend), cors, phone, disposable-email.
+84 ujian HTTP + tulen; asap dalam workerd sebenar (daftar 98 ms, log masuk
+77 ms - bcrypt kos 10).
+
+Susulan (bukan penyekat):
+- [ ] Baris `refresh_tokens` yang sudah digunakan/luput bertimbun
+      (marc_go juga) - tambah sapuan ke job `retention` (Fasa 8).
+- [ ] Mesej queue `notify` (cth `member_pending`) dibuang oleh `queue()`
+      sehingga consumer `notifications` wujud (Fasa 4). Belum di produksi.
+- [ ] Laluan `/auth/legacy-member-claim/*` → Fasa 8 (`legacy-import`).
 
 ## Fasa 3 - `profile`, `members`, `departments`, `blocked-email-domains`, `bans`, `account-lifecycle`
 
