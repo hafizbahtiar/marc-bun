@@ -1,0 +1,9 @@
+{
+  // Program ujian + skrip: berjalan dalam Bun, jadi jenis Bun dibenarkan.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["bun"]
+  },
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "worker-configuration.d.ts"],
+  "exclude": []
+}

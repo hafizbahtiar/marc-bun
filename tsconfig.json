@@ -1,0 +1,20 @@
+{
+  // Program Worker. `types: []` menghalang @types/bun (jenis Node) masuk -
+  // jadi penggunaan API Node dalam src/ gagal type-check, bukan di produksi.
+  "compilerOptions": {
+    "target": "ES2024",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2024"],
+    "types": [],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts", "worker-configuration.d.ts"],
+  "exclude": ["src/**/*.test.ts", "src/test/**"]
+}

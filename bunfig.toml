@@ -1,0 +1,4 @@
+# .env = rahsia PRODUKSI. Bun memuatkan .env ke process.env secara automatik
+# untuk `bun test`/`bun scripts/*` - matikan supaya ujian & skrip tidak pernah
+# melihat rahsia prod. Skrip yang perlukan fail env membacanya secara eksplisit.
+env = false

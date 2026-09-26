@@ -1,0 +1,85 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "marc-bun",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-26",
+  "observability": { "enabled": true },
+
+  // Sumber produksi (dicipta 2026-09-26, docs/00002-tooling.md §7). Lokal
+  // disimulasi dalam .wrangler/ - ID ini hanya dipakai untuk --remote/deploy.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "marc",
+      "database_id": "5b6fc927-6952-4342-b1b0-ae1e422eab43",
+      "migrations_dir": "src/database/migrations"
+    }
+  ],
+  "kv_namespaces": [{ "binding": "KV", "id": "5365f9802ad24a858352a5953f2f8aec" }],
+  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "marc" }],
+  "queues": {
+    "producers": [{ "binding": "JOBS", "queue": "marc-jobs" }],
+    "consumers": [
+      {
+        "queue": "marc-jobs",
+        "max_batch_size": 10,
+        "max_retries": 3,
+        "dead_letter_queue": "marc-jobs-dlq"
+      }
+    ]
+  },
+
+  // Satu binding setiap baldi bernama (00001 R5). Kunci = IP klien.
+  "ratelimits": [
+    { "name": "RL_AUTH", "namespace_id": "1001", "simple": { "limit": 5, "period": 60 } },
+    { "name": "RL_AUTH_SESSION", "namespace_id": "1002", "simple": { "limit": 20, "period": 60 } },
+    { "name": "RL_PASSWORD_RESET", "namespace_id": "1003", "simple": { "limit": 5, "period": 60 } },
+    { "name": "RL_TELEGRAM_LINK", "namespace_id": "1004", "simple": { "limit": 5, "period": 60 } },
+    { "name": "RL_VERIFY_EMAIL_REQUEST", "namespace_id": "1005", "simple": { "limit": 10, "period": 60 } },
+    { "name": "RL_DONATION", "namespace_id": "1006", "simple": { "limit": 20, "period": 60 } },
+    { "name": "RL_REGISTRATION_PAYMENT_CHECKOUT", "namespace_id": "1007", "simple": { "limit": 20, "period": 60 } },
+    { "name": "RL_ACTIVITY_PAYMENT_CHECKOUT", "namespace_id": "1008", "simple": { "limit": 20, "period": 60 } },
+    { "name": "RL_UPLOAD", "namespace_id": "1009", "simple": { "limit": 20, "period": 60 } },
+    { "name": "RL_PAYMENT_RECEIPT", "namespace_id": "1010", "simple": { "limit": 20, "period": 60 } },
+    { "name": "RL_PAYMENT_WEBHOOK", "namespace_id": "1011", "simple": { "limit": 30, "period": 10 } },
+    { "name": "RL_POST_CREATE", "namespace_id": "1012", "simple": { "limit": 30, "period": 60 } },
+    { "name": "RL_COMMENT_CREATE", "namespace_id": "1013", "simple": { "limit": 30, "period": 60 } },
+    { "name": "RL_PROFILE_UPDATE", "namespace_id": "1014", "simple": { "limit": 30, "period": 60 } },
+    { "name": "RL_ACCOUNT_DELETION_REQUEST", "namespace_id": "1015", "simple": { "limit": 30, "period": 60 } },
+    { "name": "RL_PAYMENT_STATUS", "namespace_id": "1016", "simple": { "limit": 30, "period": 60 } },
+    { "name": "RL_VERIFY", "namespace_id": "1017", "simple": { "limit": 30, "period": 10 } }
+  ],
+
+  // 15m: reaper, activitysweep, registrationsweep · 30m: reconcile
+  // 1j: lifecycle · 19:00 UTC = 03:00 MYT: retention
+  "triggers": { "crons": ["*/15 * * * *", "*/30 * * * *", "0 * * * *", "0 19 * * *"] },
+
+  // Bukan rahsia. Rahsia: .env → `bun run secrets:push` (prod) / .env.dev (lokal).
+  "vars": {
+    "ENVIRONMENT": "production",
+    "PUBLIC_BASE_URL": "",
+    "EMAIL_FROM": "",
+    "EMAIL_VERIFY_URL": "",
+    "PASSWORD_RESET_URL": "",
+    "CERTIFICATE_VERIFY_URL": "",
+    "REGISTRATION_PAYMENT_RETURN_URL": "",
+    "ACTIVITY_PAYMENT_RETURN_URL": "",
+    "CORS_ALLOWED_ORIGINS": "",
+    "ACCESS_TOKEN_TTL_MINUTES": "15",
+    "REFRESH_TOKEN_TTL_DAYS": "30",
+    "REGISTRATION_FEE_CENTS": "1000",
+    "GATEWAY_CHARGE_CENTS": "100",
+    "REGISTRATION_BILL_EXPIRY_MINUTES": "30",
+    "TOYYIBPAY_BASE_URL": "",
+    "TOYYIBPAY_CATEGORY_CODE": "",
+    "STRIPE_PUBLISHABLE_KEY": "",
+    "ONESIGNAL_APP_ID": "",
+    "TELEGRAM_BOT_USERNAME": "",
+    "R2_ACCOUNT_ID": "",
+    "R2_BUCKET_NAME": "marc",
+    "AUDIT_PII_RETENTION_DAYS": "90",
+    "AUDIT_RECORD_RETENTION_DAYS": "365",
+    "UPLOAD_TOMBSTONE_RETENTION_DAYS": "30",
+    "PAYMENT_LOG_RETENTION_DAYS": "90"
+  }
+}
