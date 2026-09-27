@@ -43,7 +43,10 @@ Semua `approved`. Siling dalam service.
   bukan hardcode): nampak sehingga satu tingkat di atas rank sendiri;
   superadmin hanya kelihatan kepada superadmin. Di luar siling → **404**.
 - Ahli biasa hanya nampak ahli `approved` (+ diri sendiri).
-- **Medan bertingkat** `/members/:id` (dibina di server, bukan disorok klien):
+- **Medan bertingkat** `/members/:id` (dibina di server, bukan disorok klien).
+  T2 = kategori `management` (supervisor ke atas) - siling rank di atas
+  menentukan **rekod siapa** yang boleh dilihat, T2 menentukan **medan apa**
+  yang kelihatan:
   - T1 semua: nama, gambar, no. ahli, peranan, bahagian, jawatan, aktif.
   - T2 management: + emel, telefon, status bayaran pendaftaran.
   - T3 superadmin sahaja: + kenalan kecemasan, nota kesihatan, Telegram,

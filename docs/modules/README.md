@@ -69,26 +69,30 @@ kongsi, bukan feature.
 
 | Feature | Bergantung pada |
 |---|---|
-| notifications, uploads, departments, blocked-email-domains, audit, activities | - |
+| notifications, uploads, audit, activities | - |
 | profile | uploads |
+| departments, blocked-email-domains | profile (`requireMinRole`) |
 | auth | profile, blocked-email-domains |
-| telegram, bans | profile |
-| members | profile, departments, payments |
+| telegram | profile |
+| bans | profile, members |
+| members | auth, profile, departments, uploads |
 | payments | profile, registrations, activities |
 | registrations | activities |
 | certificates | activities, registrations, profile, members |
 | posts | uploads, profile |
 | legacy-import | auth, profile, departments |
-| account-lifecycle | auth, profile, uploads, payments, legacy-import |
+| account-lifecycle | auth, members, profile, uploads, payments |
 | dashboard | *(read-model - cross-read)* |
 
 Semua feature boleh menghantar mesej `notify` melalui `shared/jobs.ts`
 (`enqueue`) - bukan import `notifications`.
 
 Kitaran yang dipecahkan dengan port (D):
-- `profile` perlukan status yuran untuk `/me`, `payments` perlukan profil
-  untuk pengecualian staff → `profile` isytihar port `RegistrationFeeStatus`,
-  `app.ts` menyambung `payments.registrationFeeStatus`.
+- `profile` & `members` perlukan status yuran pendaftaran (`/me`, `/members`)
+  → cross-read subquery `registration_payments` dalam `profile/repo.ts`
+  (pariti query marc_go), bukan import `payments`.
+- Gate peranan (`requireMinRole`) dalam `profile`, bukan `members` - kalau
+  tidak `departments → members → departments`.
 - `activities` perlukan kiraan pendaftaran → cross-read subquery (a), bukan
   import `registrations`.
 

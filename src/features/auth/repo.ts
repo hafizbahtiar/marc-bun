@@ -142,3 +142,15 @@ export async function resetPassword(db: D1Database, hash: string, passwordHash: 
   const rows = (claimed?.results ?? []) as { token_hash: string; user_id: string; expires_at: number }[]
   return rows.find((r) => r.token_hash === hash) ?? null
 }
+
+// ---- untuk feature lain (dalam db.batch mereka) ----
+
+type Guard = { sql: string; params: unknown[] }
+
+// Bunuh semua sesi (cth ahli ditolak) - hanya bila `guard` benar.
+export const deleteAllRefreshStmt = (db: D1Database, userId: string, guard: Guard) =>
+  db.prepare(`DELETE FROM refresh_tokens WHERE user_id = ? AND ${guard.sql}`).bind(userId, ...guard.params)
+
+// Padam akaun (cascade ke jadual milik pengguna; FK lain SET NULL).
+export const deleteUserStmt = (db: D1Database, userId: string, guard: Guard) =>
+  db.prepare(`DELETE FROM users WHERE id = ? AND ${guard.sql} RETURNING id`).bind(userId, ...guard.params)

@@ -24,7 +24,8 @@
 - `code` ialah kunci URL - **tidak boleh** mengandungi `/`.
 - Padam bahagian yang masih dirujuk → `profiles.department_code` jadi NULL
   (`ON DELETE SET NULL`), ahli kekal - bahagian bukan kebenaran sistem.
-- Mutasi diaudit.
+- Mutasi **tidak** diaudit - pariti `marc_go` (`handlers/departments.go` tiada
+  `audit.Record`). Bahagian ialah data rujukan, bukan perubahan keistimewaan.
 
 ## Cloudflare
 

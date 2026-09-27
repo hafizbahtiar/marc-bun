@@ -1,2 +1,3 @@
-// API awam. Laluan /admin/blocked-email-domains datang dalam Fasa 3.
+// API awam features/blocked-email-domains.
 export { isBlocked } from './repo'
+export { blockedEmailDomainsRoutes } from './routes'

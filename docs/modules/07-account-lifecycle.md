@@ -21,17 +21,16 @@ Permintaan itu sendiri dibuat melalui `POST /me/deletion-request`
 
 ## Data
 
-- **Milik**: tiada - feature ini **orkestrator**. Ia mengumpul statement
-  daripada setiap pemilik dan menghantar satu `db.batch()`:
-  `profile.detach(id)` (`approved_by`, `staff_id_verified_by`),
-  `legacyImport.detach(id)`, `payments.detach(id)` (`donor_email` NULL → `''`,
-  kemudian FK `SET NULL` pada `donations.user_id` - tanpa langkah pertama
-  `donations_traceable` menggagalkan seluruh batch; diuji dalam
-  `schema.test.ts`),
-  `uploads.keysOf(id)` + `uploads.enqueueDelete(keys)`, `auth.deleteUser(id)`
-  (cascade), `auditStmt`.
-- Pemilik baharu dengan FK ke `users` mesti menambah `detach()` - ujian
-  skema dalam §Cloudflare menangkapnya bila terlupa.
+- **Milik**: tiada - feature ini **orkestrator**. Satu `db.batch()` daripada
+  statement pemilik, SEMUA dengan guard yang sama (pengguna wujud, bukan
+  superadmin, dan - untuk laluan permintaan - permintaan masih `pending`):
+  `uploads.enqueueUserObjectsStmt` (avatar, pending upload, gambar post →
+  `deleted_uploads`, satu `INSERT … SELECT`), `payments.detachDonationsStmt`,
+  `auditStmt`, `auth.deleteUserStmt` (terakhir).
+- Nyahrujuk manual marc_go (`approved_by`, `staff_id_verified_by`, …) **tidak
+  diperlukan**: skema D1 guna `ON DELETE SET NULL` pada setiap rujukan
+  sejarah. (marc_go terlepas `profiles.banned_by` - memadam admin yang pernah
+  ban seseorang gagal dengan ralat FK.)
 
 ## Peraturan
 
@@ -47,12 +46,15 @@ Permintaan itu sendiri dibuat melalui `POST /me/deletion-request`
 
 ## Cloudflare
 
-- `marc_go` ambil `FOR UPDATE` pada baris sasaran. Di D1: kira semua kunci R2
-  dan bina semua statement dahulu, kemudian satu batch. Guard kiraan
-  superadmin dalam `WHERE` statement `DELETE` (bukan baca-dahulu) supaya
-  dua pemadaman serentak tidak boleh memadam superadmin terakhir.
-- Senarai statement nyahrujuk mesti diuji terhadap **skema**, bukan senarai
-  tulisan tangan: satu FK baharu tanpa `ON DELETE` akan menggagalkan batch.
+- Tiada `FOR UPDATE`: semakan dibuat dahulu untuk mesej ralat yang tepat, dan
+  guard yang sama diulang dalam `WHERE` setiap statement batch - perlumbaan
+  (cth permintaan ditarik) = tiada apa berubah, 404.
+- **Derma**: sebelum `users` dipadam (FK `SET NULL` pada `donations.user_id`),
+  emel akaun disalin ke `donor_email` yang kosong. Tanpa ini
+  `donations_traceable` menggagalkan seluruh batch - pepijat marc_go (derma
+  ahli log masuk disimpan dengan `donor_email` NULL, jadi pemadamannya gagal
+  500). *Keputusan produk terbuka*: ini mengekalkan emel ahli yang dipadam
+  dalam rekod kewangan (`TODO.md`).
 
 ## Ujian wajib
 

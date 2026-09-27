@@ -434,7 +434,12 @@ Setiap satu mesti disemak dengan pemilik produk sebelum cutover.
 11. **Claim JWT tambahan `iat_ms`** - ketepatan milisaat untuk `logout-all`
     / reset (tanpanya token yang dikeluarkan dalam saat yang sama terlepas).
     Aditif; token marc_go tanpa `iat_ms` kekal sah.
-12. **Headless/`scheduled`**: job latar yang di `marc_go` jalan pada setiap
+12. **Ban selepas tamat** boleh diganti dengan ban baharu (marc_go: 409).
+13. **Pemadaman akaun ahli yang pernah menderma** berjaya; emel akaun disalin
+    ke `donor_email` (marc_go: 500). Perlu kelulusan produk (`TODO.md`).
+14. **Nyahban** memulangkan `{user_id, banned}` sama; **ban** kini mengisi
+    `email` & `role_key` (marc_go: rentetan kosong).
+15. **Headless/`scheduled`**: job latar yang di `marc_go` jalan pada setiap
    instance tanpa kunci teragih, di D1 berjalan sekali per cron. Sama
    keputusan, kurang kerja.
 

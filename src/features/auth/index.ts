@@ -2,3 +2,4 @@
 export { authRoutes } from './routes'
 export type { AuthDeps } from './service'
 export { hashPassword } from './service'
+export { deleteAllRefreshStmt, deleteUserStmt } from './repo'

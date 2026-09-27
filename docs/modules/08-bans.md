@@ -3,7 +3,7 @@
 **Tujuan.** Gantung akaun ahli, sementara atau kekal.
 
 **Sumber `marc_go`**: `handlers/member_bans.go`, `queries/member_bans.sql`,
-`middleware/auth.go` (`IsUserCurrentlyBanned`).
+`middleware/auth.go` (`IsUserCurrentlyBanned`). Kod: `features/bans/routes.ts`.
 
 ## Laluan
 
@@ -25,7 +25,9 @@
   / pada masa lalu.
 - Aktif = `banned_at IS NOT NULL AND (ban_expires_at IS NULL OR ban_expires_at > now)`.
   Tamat tempoh = automatik tidak aktif; tiada job diperlukan.
-- `BanProfile` guard `banned_at IS NULL` → ban dua kali tidak menindih sebab asal.
+- Guard: tiada ban **aktif** → ban dua kali = 409, tidak menindih sebab asal.
+  Ban yang sudah tamat boleh diganti (marc_go: guard `banned_at IS NULL`
+  sahaja, jadi ban baharu selepas tamat ditolak 409 selamanya).
 - Kuat kuasa di `requireAuth` melalui kunci KV `ban:<userId>`
   ([shared](./00-shared.md)) → 403 `akaun anda sedang digantung`, dan di
   `/auth/refresh` melalui D1. `optionalAuth` melayan ahli yang digantung

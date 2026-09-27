@@ -1,6 +1,12 @@
 // Binding sebenar (D1/KV/R2/Queue) untuk `bun test`, melalui workerd.
 // Setiap panggilan = pangkalan data baharu, migrasi dijalankan dengan runner
 // yang SAMA seperti produksi (`wrangler d1 migrations apply`).
+//
+// Fail ini di-exclude daripada tsconfig.json (program Worker) supaya jenis
+// Bun/Node tidak bocor ke kod produksi - jadi editor perlu dua reference ini
+// supaya `CloudflareBindings` dan `Bun` dikenali (lihat src/test/app.ts).
+/// <reference path="../../worker-configuration.d.ts" />
+/// <reference types="bun" />
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'

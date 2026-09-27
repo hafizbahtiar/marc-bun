@@ -79,7 +79,7 @@ describe('pemilik jadual', () => {
     for (const f of files.filter((f) => f.endsWith('/repo.ts'))) {
       const feature = featureOf(f)
       const sql = readFileSync(f, 'utf8')
-      for (const m of sql.matchAll(/\b(?:INSERT\s+(?:OR\s+\w+\s+)?INTO|UPDATE|DELETE\s+FROM|REPLACE\s+INTO)\s+([a-z_]+)/gi)) {
+      for (const m of sql.matchAll(/\b(?:INSERT\s+(?:OR\s+\w+\s+)?INTO|(?<!DO\s+)UPDATE|DELETE\s+FROM|REPLACE\s+INTO)\s+([a-z_]+)/gi)) {
         const table = m[1]!.toLowerCase()
         if (owner.get(table) !== feature) bad.push(`${relative(SRC, f)} menulis ${table} (pemilik: ${owner.get(table) ?? 'tiada'})`)
       }

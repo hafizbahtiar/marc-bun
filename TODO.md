@@ -9,9 +9,9 @@ Migrasi, skrip, arahan: [`docs/00002-tooling.md`](./docs/00002-tooling.md).
 Sumber kebenaran sepanjang migrasi ialah **kod** `../marc_go`, bukan
 dokumennya - `ARCHITECTURE.md`/`DATABASE.md` di sana sudah tertinggal.
 
-Status: **Fasa 2 siap; Fasa 0 hampir siap** (lokal). Scaffold features-first, semua
+Status: **Fasa 3 siap; Fasa 0 hampir siap** (lokal). Scaffold features-first, semua
 binding, `shared/` asas, arahan, CI, skema D1; `bun run check` hijau. Belum: remote git,
-rahsia prod (`.env`), deploy pertama. Seterusnya: Fasa 3 (`profile`, `members`, …).
+rahsia prod (`.env`), deploy pertama. Seterusnya: Fasa 4 (`uploads`, `posts`, `notifications`, `dashboard`).
 
 Setiap fasa selesai bila: respons padan `marc_go` (status + bentuk JSON +
 mesej), tiada medan PII baharu, `bun run check` hijau, dan **dokumen
@@ -109,8 +109,8 @@ bila dilanggar, dan set jadual mesti sama dengan peta pemilik
 `docs/modules/README.md`.
 
 Dijumpai semasa ujian: memadam ahli yang ada derma dengan `donor_email`
-NULL menggagalkan `donations_traceable`. `marc_go` terlepas kerana ia
-menyimpan `''`. Ditangani oleh `payments.detach()` (Fasa 3/7).
+NULL menggagalkan `donations_traceable`. (Pembetulan: marc_go juga menyimpan
+NULL, bukan `''` - pemadaman itu gagal 500 di marc_go.) Ditangani dalam Fasa 3.
 
 ## Fasa 2 - `auth`, `telegram` ✅
 
@@ -130,10 +130,21 @@ Susulan (bukan penyekat):
       sehingga consumer `notifications` wujud (Fasa 4). Belum di produksi.
 - [ ] Laluan `/auth/legacy-member-claim/*` → Fasa 8 (`legacy-import`).
 
-## Fasa 3 - `profile`, `members`, `departments`, `blocked-email-domains`, `bans`, `account-lifecycle`
+## Fasa 3 - `profile`, `members`, `departments`, `blocked-email-domains`, `bans`, `account-lifecycle` ✅
 
-- [ ] `docs/modules/03`-`08`.
-- [ ] Audit dalam batch pada setiap mutasi (R2).
+Siap 2026-09-27. Semua laluan pariti marc_go; `shared/audit.ts` (audit dalam
+batch yang sama, snapshot pelaku melalui subquery) + `shared/concurrency.ts`
+(CAS `updated_at`). Alamat & pemadaman akaun = satu batch berguard.
+Ujian HTTP untuk setiap feature (termasuk 5 alamat serentak → tepat 3, batch
+pemadaman gagal di tengah → tiada perubahan).
+
+Keputusan terbuka:
+- [ ] **Derma ahli yang dipadam**: kini emel akaun disalin ke `donor_email`
+      (rekod kewangan kekal boleh dijejak). Alternatif: `''` (hilang jejak)
+      atau sekat pemadaman. Sahkan dengan pemilik produk.
+
+Tertangguh ke Fasa 4: avatar baharu (pengesahan R2) dan URL bertandatangan
+(`uploads.signedUrl` pulang null). Buang avatar sudah berfungsi.
 
 ## Fasa 4 - `uploads`, `posts`, `notifications`, `dashboard`
 
