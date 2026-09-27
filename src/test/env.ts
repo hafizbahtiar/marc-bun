@@ -26,7 +26,9 @@ export async function testEnv() {
 
   // envFiles: [] - ujian tidak pernah membaca .env (prod) atau .env.dev.
   const proxy = await getPlatformProxy<CloudflareBindings>({ persist: { path: join(dir, 'v3') }, envFiles: [] })
-  const env = { ...proxy.env, ...TEST_SECRETS } as CloudflareBindings
+  // Nilai konfigurasi yang dirujuk ujian dipin di sini - bukan diambil dari
+  // `vars` produksi dalam wrangler.jsonc (cth. fi sebenar boleh berubah).
+  const env = { ...proxy.env, ...TEST_SECRETS, REGISTRATION_FEE_CENTS: '1000' } as CloudflareBindings
   return {
     env,
     async dispose() {
