@@ -1,7 +1,7 @@
 # 14 - dashboard
 
 **Tujuan.** Satu bacaan agregat untuk skrin Utama app: blok ahli untuk semua,
-blok admin untuk management.
+blok admin untuk rank ≥ `admin`.
 
 **Sumber `marc_go`**: `handlers/dashboard.go`, `queries/dashboard.sql`,
 `outstandingRegistrationFee` dalam `handlers/payments.go`.
@@ -17,7 +17,7 @@ blok admin untuk management.
 - `member`: `membership` (`status`, `member_id`, `staff_id_verified`,
   `outstanding_registration_fee_cents`), `certificates_total`,
   `total_members`, `open_activities[]`.
-- `admin` (management sahaja, `null` selainnya): `pending_approvals`,
+- `admin` (rank ≥ `admin` sahaja - bukan manager/supervisor; `null` selainnya): `pending_approvals`,
   `member_stats` (`active`, `pending`, `new_this_month`, `by_department[]`),
   `activity_stats` (`upcoming`, `registrations_this_month`,
   `attendance_rate`), `revenue_this_month` (`registration_cents`,
@@ -39,8 +39,9 @@ Baca sahaja. Tiada jadual milik.
   (kemungkinan UTC), jadi 1hb 00:00-07:59 MYT jatuh ke bulan lepas. Cadangan:
   MYT - ini perubahan tingkah laku, catat dalam `00001` §8.
 - `attendance_rate` boleh `null` (tiada sesi) - jangan pulang `0`.
-- `donation_cents` boleh `null` (bukan semua peranan nampak derma - salin
-  syarat `marc_go`).
+- `donation_cents` = superadmin sahaja; `null` untuk admin, dan `total_cents`
+  hanya menjumlahkan apa yang pemanggil layak lihat.
+- Kiraan yuran tertunggak: `payments.outstandingFeeStmt` (satu sumber).
 
 ## Cloudflare
 

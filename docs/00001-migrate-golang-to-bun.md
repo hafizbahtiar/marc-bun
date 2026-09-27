@@ -442,6 +442,11 @@ Setiap satu mesti disemak dengan pemilik produk sebelum cutover.
 15. **Headless/`scheduled`**: job latar yang di `marc_go` jalan pada setiap
    instance tanpa kunci teragih, di D1 berjalan sekali per cron. Sama
    keputusan, kurang kerja.
+16. **Pengesahan imej gagal-tertutup**: WebP/rosak yang dimensinya tidak dapat
+    diukur ditolak (marc_go meluluskannya).
+17. **Komen pada post dipadam lembut** → 404 (marc_go: diterima).
+18. **Notifikasi kepada pengguna yang sudah dipadam** dilangkau senyap.
+19. **"Bulan ini" dashboard = MYT** (lihat 4) - dilaksanakan.
 
 ## 9. Risiko
 

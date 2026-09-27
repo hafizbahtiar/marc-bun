@@ -69,7 +69,7 @@ kongsi, bukan feature.
 
 | Feature | Bergantung pada |
 |---|---|
-| notifications, uploads, audit, activities | - |
+| notifications, uploads, audit, activities | - (uploads menerima middleware `verified` dari app.ts - profile mengimport uploads) |
 | profile | uploads |
 | departments, blocked-email-domains | profile (`requireMinRole`) |
 | auth | profile, blocked-email-domains |
@@ -82,7 +82,7 @@ kongsi, bukan feature.
 | posts | uploads, profile |
 | legacy-import | auth, profile, departments |
 | account-lifecycle | auth, members, profile, uploads, payments |
-| dashboard | *(read-model - cross-read)* |
+| dashboard | payments (`outstandingFeeStmt`), profile *(selainnya read-model - cross-read)* |
 
 Semua feature boleh menghantar mesej `notify` melalui `shared/jobs.ts`
 (`enqueue`) - bukan import `notifications`.

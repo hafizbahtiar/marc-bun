@@ -356,3 +356,9 @@ export async function listDeletionTargets(db: D1Database): Promise<DeletionListR
 
 // Syarat SQL untuk guard batch pemadaman (features/account-lifecycle).
 export const PENDING_DELETION_REQUEST_SQL = "EXISTS (SELECT 1 FROM account_deletion_requests WHERE user_id = ? AND status = 'pending')"
+
+export async function isManagement(db: D1Database, userId: string): Promise<boolean> {
+  // cross-read: roles
+  const row = await db.prepare(`SELECT r.category FROM profiles p JOIN roles r ON r.id = p.role_id WHERE p.user_id = ?`).bind(userId).first<{ category: string }>()
+  return row?.category === 'management'
+}

@@ -5,10 +5,14 @@ import { accountLifecycleRoutes } from './features/account-lifecycle'
 import { authRoutes, type AuthDeps } from './features/auth'
 import { bansRoutes } from './features/bans'
 import { blockedEmailDomainsRoutes } from './features/blocked-email-domains'
+import { dashboardRoutes } from './features/dashboard'
 import { departmentsRoutes } from './features/departments'
 import { membersRoutes, type MembersDeps } from './features/members'
-import { profileRoutes } from './features/profile'
+import { notificationsRoutes } from './features/notifications'
+import { postsRoutes } from './features/posts'
+import { profileRoutes, requireApproved, requireVerified } from './features/profile'
 import { telegramRoutes, telegramSend, type TelegramDeps } from './features/telegram'
+import { uploadsRoutes } from './features/uploads'
 import { resendEmail } from './shared/email'
 import { INVALID_DATA, notFound, onError } from './shared/http'
 import { enqueue } from './shared/jobs'
@@ -41,6 +45,10 @@ export function createApp(deps: AppDeps = defaultDeps) {
   app.route('/', blockedEmailDomainsRoutes())
   app.route('/', bansRoutes())
   app.route('/', accountLifecycleRoutes())
+  app.route('/', uploadsRoutes([requireApproved, requireVerified]))
+  app.route('/', postsRoutes(deps))
+  app.route('/', notificationsRoutes())
+  app.route('/', dashboardRoutes())
 
   app.onError(onError)
   app.notFound(notFound)

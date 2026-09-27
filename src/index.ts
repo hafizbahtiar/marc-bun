@@ -1,18 +1,20 @@
 // Composition root: tiga entry point Worker, peta job, dan (kelak) sambungan port.
 import { app } from './app'
+import { notify } from './features/notifications'
+import { reaper } from './features/uploads'
 import type { CronJob, JobHandler, JobType } from './shared/jobs'
 
 // Jadual mesti sama dengan `triggers.crons` dalam wrangler.jsonc.
 // Tambah job = satu entri: '*/15 * * * *': [uploads.reaper, payments.activitySweep, …]
 export const cronJobs: Record<string, CronJob[]> = {
-  '*/15 * * * *': [],
+  '*/15 * * * *': [reaper],
   '*/30 * * * *': [],
   '0 * * * *': [],
   '0 19 * * *': [],
 }
 
 // Tambah jenis mesej = satu entri: notify: notifications.consume
-export const jobHandlers: Partial<Record<JobType, JobHandler>> = {}
+export const jobHandlers: Partial<Record<JobType, JobHandler>> = { notify }
 
 export default {
   fetch: app.fetch,

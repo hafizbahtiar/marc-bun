@@ -11,6 +11,7 @@ export {
   getDeletionRequest,
   getMember,
   isBanned,
+  isManagement,
   listAddresses,
   listBanned,
   listDeletionRequests,

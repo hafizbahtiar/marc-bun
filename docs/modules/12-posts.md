@@ -36,8 +36,11 @@ Semua `verified`.
 - Gambar: maks 4; setiap `r2_key` mesti milik pemanggil dalam
   `pending_uploads` dan lulus `verifyImage` ([uploads](./11-uploads.md)).
 - **Padam lembut** (`deleted_at`) - post dipadam = 404 di mana-mana.
-- Ubah/padam: pemilik **atau** management (`canModify`). PATCH post/komen
-  wajib `updated_at` → 409 `stale_write` bila lapuk ([shared](./00-shared.md)).
+- **Sunting: pemilik sahaja** (`cuma pemilik boleh edit post/comment`).
+  **Padam**: pemilik **atau** management (`canModify`). PATCH/DELETE wajib
+  `updated_at` → 409 `stale_write` bila lapuk ([shared](./00-shared.md)).
+- Komen hanya pada post yang belum dipadam (marc_go menerima komen pada post
+  dipadam lembut - hanya bergantung pada FK).
 - **Komen kedalaman ≤2**: balas komen tahap-2 → dilekatkan pada induk
   tahap-1 asalnya (flatten), bukan tahap 3.
 - **Like idempoten**: like kali kedua tiada baris baharu → **tiada

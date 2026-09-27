@@ -1,7 +1,7 @@
 // Peraturan /me, alamat, permintaan pemadaman - pariti marc_go
 // handlers/profile.go (Me, UpdateMe, RequestAccountDeletion) + addresses.go.
 // Susunan semakan & mesej = marc_go.
-import { enqueueDeleteStmt, signedUrl } from '../uploads'
+import { deletePendingStmt, enqueueDeleteStmt, signedUrl, verifyUploadedImage } from '../uploads'
 import { auditStmt, ENTITY, type Actor } from '../../shared/audit'
 import { expectedUpdatedAt, staleWrite } from '../../shared/concurrency'
 import { uuid } from '../../shared/db'
@@ -55,10 +55,9 @@ export async function updateMe(ctx: ProfileCtx, userId: string, input: UpdateMe)
   const expected = expectedUpdatedAt(input.updated_at)
 
   const avatarKey = input.avatar_r2_key == null ? undefined : input.avatar_r2_key.trim()
-  // Gambar baharu memerlukan pengesahan R2 (features/uploads, Fasa 4). Sehingga
-  // itu: pariti marc_go bila R2 belum dikonfigur. Ditolak SEBELUM kemas kini
-  // supaya permintaan gagal tidak separuh berlaku.
-  if (avatarKey) throw new ApiError(400, 'gambar tidak sah atau belum diupload')
+  // Disahkan SEBELUM kemas kini (milik pemanggil + imej sah, ≤1024 px) supaya
+  // permintaan yang ditolak tidak separuh berlaku.
+  if (avatarKey) await verifyUploadedImage(ctx.env, userId, avatarKey, 'avatar')
 
   const db = ctx.env.DB
   const updated = await repo
@@ -78,16 +77,21 @@ export async function updateMe(ctx: ProfileCtx, userId: string, input: UpdateMe)
     .first<{ member_id: string | null; display_name: string | null; phone: string | null; avatar_r2_key: string | null; updated_at: number }>()
   if (!updated) throw staleWrite('profil telah berubah. Muat semula sebelum menyunting lagi.')
 
-  if (avatarKey !== '') return updatedMeDto(updated, await signedUrl(ctx.env, updated.avatar_r2_key))
+  if (avatarKey === undefined) return updatedMeDto(updated, await signedUrl(ctx.env, updated.avatar_r2_key))
 
-  // Buang avatar: kosongkan + gilir objek lama + audit, SATU batch.
+  // Tukar/buang avatar: tetapkan kunci + gilir objek LAMA + keluarkan kunci
+  // baharu dari pending + audit - SATU batch (tiada objek yatim, tiada
+  // perubahan tanpa jejak).
   const before = updated.avatar_r2_key
-  const stmts = [repo.setAvatarStmt(db, userId, null, ctx.now)]
-  if (before) stmts.push(enqueueDeleteStmt(db, before, 'avatar_replaced'))
-  const audit = auditStmt(db, { entityType: ENTITY.profile, entityId: userId, action: 'update', actor: ctx.actor, old: { avatar_r2_key: before }, new: { avatar_r2_key: null } })
+  const next = avatarKey || null
+  const stmts = [repo.setAvatarStmt(db, userId, next, ctx.now)]
+  if (before && before !== next) stmts.push(enqueueDeleteStmt(db, before, 'avatar_replaced'))
+  if (next) stmts.push(deletePendingStmt(db, next, userId))
+  const audit = auditStmt(db, { entityType: ENTITY.profile, entityId: userId, action: 'update', actor: ctx.actor, old: { avatar_r2_key: before }, new: { avatar_r2_key: next } })
   if (audit) stmts.push(audit)
   const [cleared] = await db.batch(stmts)
-  return updatedMeDto(cleared!.results[0] as typeof updated, null)
+  const row = cleared!.results[0] as typeof updated
+  return updatedMeDto(row, await signedUrl(ctx.env, row.avatar_r2_key))
 }
 
 // ---- permintaan pemadaman (keperluan Google Play) ----

@@ -11,7 +11,7 @@ dokumennya - `ARCHITECTURE.md`/`DATABASE.md` di sana sudah tertinggal.
 
 Status: **Fasa 3 siap; Fasa 0 hampir siap** (lokal). Scaffold features-first, semua
 binding, `shared/` asas, arahan, CI, skema D1; `bun run check` hijau. Belum: remote git,
-rahsia prod (`.env`), deploy pertama. Seterusnya: Fasa 4 (`uploads`, `posts`, `notifications`, `dashboard`).
+rahsia prod (`.env`), deploy pertama. Seterusnya: Fasa 5 (`activities`, `registrations`).
 
 Setiap fasa selesai bila: respons padan `marc_go` (status + bentuk JSON +
 mesej), tiada medan PII baharu, `bun run check` hijau, dan **dokumen
@@ -126,8 +126,6 @@ revocation (KV), crypto, email (Resend), cors, phone, disposable-email.
 Susulan (bukan penyekat):
 - [ ] Baris `refresh_tokens` yang sudah digunakan/luput bertimbun
       (marc_go juga) - tambah sapuan ke job `retention` (Fasa 8).
-- [ ] Mesej queue `notify` (cth `member_pending`) dibuang oleh `queue()`
-      sehingga consumer `notifications` wujud (Fasa 4). Belum di produksi.
 - [ ] Laluan `/auth/legacy-member-claim/*` → Fasa 8 (`legacy-import`).
 
 ## Fasa 3 - `profile`, `members`, `departments`, `blocked-email-domains`, `bans`, `account-lifecycle` ✅
@@ -141,13 +139,15 @@ pemadaman gagal di tengah → tiada perubahan).
 Diputuskan: **derma ahli yang dipadam** - emel akaun disalin ke
 `donor_email` supaya penyumbang kekal boleh dijejak (pemilik produk, 2026-09-27).
 
-Tertangguh ke Fasa 4: avatar baharu (pengesahan R2) dan URL bertandatangan
-(`uploads.signedUrl` pulang null). Buang avatar sudah berfungsi.
+Avatar baharu & URL bertandatangan: siap dalam Fasa 4.
 
-## Fasa 4 - `uploads`, `posts`, `notifications`, `dashboard`
+## Fasa 4 - `uploads`, `posts`, `notifications`, `dashboard` ✅
 
-- [ ] `docs/modules/11`-`14`.
-- [ ] Consumer queue `notify` (R6) + job `reaper`.
+Siap 2026-09-27. Presign R2 (aws4fetch), pengesahan imej gagal-tertutup
+(JPEG/PNG/WebP), URL baca bertandatangan dicache KV, job `reaper` (15m),
+avatar baharu. Posts/komen/like pariti marc_go (sunting = pemilik; padam =
+pemilik/management). Consumer `notify` (satu INSERT + satu panggilan
+OneSignal). Dashboard dengan sempadan bulan MYT.
 
 ## Fasa 5 - `activities`, `registrations`
 

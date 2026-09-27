@@ -25,6 +25,9 @@ export type NotifyMessage = {
   commentId?: string
   activityId?: string
   certificateId?: string
+  // Push OneSignal. Tiada = baris notifikasi sahaja (pariti marc_go:
+  // member_pending/approved/rejected tidak menghantar push).
+  push?: { title: string; message: string }
 }
 
 export type JobMessage = NotifyMessage

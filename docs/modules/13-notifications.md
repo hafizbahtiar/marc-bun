@@ -40,11 +40,13 @@
 
 ## Consumer queue: `notify`
 
-Mesej: `{ type: 'notify', kind, recipients: string[], actorId, target… }`.
+Mesej: `NotifyMessage` dalam `shared/jobs.ts` (`kind`, `actorId`,
+`recipientIds` ≤100, sasaran, `push?` `{title, message}` - tiada = tanpa push).
 
-1. Tapis penerima = pelaku.
-2. `INSERT` baris `notifications` berkeping (≤100 parameter).
-3. Hantar push OneSignal (`fetch`) untuk penerima yang ada `device_tokens`.
+1. Tapis penerima = pelaku, buang pendua.
+2. SATU `INSERT … SELECT FROM json_each(?)` - penerima/pelaku yang sudah
+   dipadam dilangkau (bukan ralat FK yang di-retry selama-lamanya).
+3. SATU panggilan OneSignal untuk semua `device_tokens` penerima.
 4. Gagal push = log, **bukan** retry mesej (baris DB sudah wujud; retry akan
    menduplikasi). Gagal DB = biar queue retry.
 
@@ -63,7 +65,7 @@ memanggil `notify.enqueue(env, msg)` - mereka tidak tahu tentang OneSignal.
 ## Ujian wajib
 
 - Consumer: pelaku tidak menerima notifikasi sendiri.
-- Consumer dijalankan dua kali untuk mesej sama → kelakuan didokumenkan
-  (idempotensi melalui kunci `(recipient, kind, target, actor)` atau diterima).
+- Consumer dijalankan dua kali untuk mesej sama → baris pendua **diterima**
+  (hanya berlaku bila ack gagal selepas tulis; tiada kunci unik).
 - Upsert `onesignal_id` pengguna lain → 409.
 - `DELETE /notifications/selected` dengan id orang lain → diabaikan.
