@@ -78,15 +78,20 @@ Sudah disahkan 2026-09-26 (wrangler 4.141, Bun 1.4.2) - ujian dalam
 
 ## Fasa 0 - Scaffold (baki)
 
-- [ ] **Remote git** + commit pertama (repo sudah `git init`; tiada commit
-      lagi). CI (`.github/workflows/ci.yml`) bergantung pada `origin/main`.
+- [x] **Remote git** (2026-09-27): `github.com/hafizbahtiar/marc-bun` (public),
+      `main` dijejak `origin/main`; CI berjalan pada push.
 - [x] **Sumber Cloudflare** (2026-09-26): D1 `marc`
       (`5b6fc927-…`, 15 migrasi, 36 jadual), KV `marc` (`5365f980…`), Queue
       `marc-jobs` + `marc-jobs-dlq`. R2 `marc` sudah wujud dari `marc_go`
       (persendirian: `r2.dev` mati, tiada domain). `marc-staging` juga wujud -
       tidak dipakai.
-- [ ] Isi `.env` (prod; sudah disalin dari `.env.example`; `JWT_SECRET`
-      sama dengan `marc_go`) → `bun run secrets:push`.
+- [x] Isi `.env` (prod, dari Railway production) + `.env.dev` (staging, hanya
+      rahsia yang berbeza daripada prod).
+- [ ] `bun run deploy` pertama (Worker `marc-bun` belum wujud) →
+      `bun run secrets:push` → `bun run secrets:check`.
+- [ ] Isi `vars` bukan-rahsia dalam `wrangler.jsonc` (EMAIL_FROM, URL frontend,
+      ToyyibPay, Stripe publishable, OneSignal app id, R2_ACCOUNT_ID, …);
+      `PUBLIC_BASE_URL` = domain marc_go semasa cutover (bil ToyyibPay hidup).
 
 Siap (rujukan): `git init`, `.gitignore` (`backups/`, `.env*`),
 `.env.example` + `.env.dev` lokal + `bunfig.toml` (`env = false`), `wrangler.jsonc` (D1/KV/R2/Queue+DLQ/17 ratelimit/4 cron/
