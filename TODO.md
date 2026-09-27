@@ -138,10 +138,8 @@ batch yang sama, snapshot pelaku melalui subquery) + `shared/concurrency.ts`
 Ujian HTTP untuk setiap feature (termasuk 5 alamat serentak → tepat 3, batch
 pemadaman gagal di tengah → tiada perubahan).
 
-Keputusan terbuka:
-- [ ] **Derma ahli yang dipadam**: kini emel akaun disalin ke `donor_email`
-      (rekod kewangan kekal boleh dijejak). Alternatif: `''` (hilang jejak)
-      atau sekat pemadaman. Sahkan dengan pemilik produk.
+Diputuskan: **derma ahli yang dipadam** - emel akaun disalin ke
+`donor_email` supaya penyumbang kekal boleh dijejak (pemilik produk, 2026-09-27).
 
 Tertangguh ke Fasa 4: avatar baharu (pengesahan R2) dan URL bertandatangan
 (`uploads.signedUrl` pulang null). Buang avatar sudah berfungsi.

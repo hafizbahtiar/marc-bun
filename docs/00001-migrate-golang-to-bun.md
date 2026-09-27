@@ -436,7 +436,7 @@ Setiap satu mesti disemak dengan pemilik produk sebelum cutover.
     Aditif; token marc_go tanpa `iat_ms` kekal sah.
 12. **Ban selepas tamat** boleh diganti dengan ban baharu (marc_go: 409).
 13. **Pemadaman akaun ahli yang pernah menderma** berjaya; emel akaun disalin
-    ke `donor_email` (marc_go: 500). Perlu kelulusan produk (`TODO.md`).
+    ke `donor_email` (marc_go: 500) - diluluskan pemilik produk (penyumbang boleh dijejak).
 14. **Nyahban** memulangkan `{user_id, banned}` sama; **ban** kini mengisi
     `email` & `role_key` (marc_go: rentetan kosong).
 15. **Headless/`scheduled`**: job latar yang di `marc_go` jalan pada setiap

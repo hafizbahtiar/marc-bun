@@ -53,8 +53,8 @@ Permintaan itu sendiri dibuat melalui `POST /me/deletion-request`
   emel akaun disalin ke `donor_email` yang kosong. Tanpa ini
   `donations_traceable` menggagalkan seluruh batch - pepijat marc_go (derma
   ahli log masuk disimpan dengan `donor_email` NULL, jadi pemadamannya gagal
-  500). *Keputusan produk terbuka*: ini mengekalkan emel ahli yang dipadam
-  dalam rekod kewangan (`TODO.md`).
+  500). Keputusan produk (2026-09-27): emel dikekalkan supaya penyumbang boleh
+  dijejak.
 
 ## Ujian wajib
 
