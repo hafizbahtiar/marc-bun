@@ -24,8 +24,7 @@ modul berkenaan dikemas kini** kalau kelakuan berbeza.
 - [ ] **Font PDF (R11).** Hadkan teks sijil/resit kepada WinAnsi dengan
       pengesahan eksplisit (pariti `marc_go`), atau tanam TTF Unicode
       (fontkit, bundle lebih besar).
-- [ ] **"Bulan ini" dashboard.** MYT (cadangan) vs pariti `date_trunc` UTC
-      `marc_go`. Lihat `docs/modules/14-dashboard.md`.
+- [x] **"Bulan ini" dashboard.** MYT - dilaksanakan Fasa 4 (`00001` §8.19).
 - [ ] **Nombor siri sijil (R4).** Terima jurang siri + dokumen (cadangan).
 - [ ] **Origin CORS.** Senaraikan `CORS_ALLOWED_ORIGINS` (web Flutter,
       `marc_astro`, staging) sebelum CORS global - `00001` §8.1.
@@ -61,11 +60,11 @@ Sudah disahkan 2026-09-26 (wrangler 4.141, Bun 1.4.2) - ujian dalam
       `00001` §8.5 ialah perubahan kelakuan sebenar.
 - [ ] **Format masa JSON** - bandingkan sampel respons `marc_go` (`RFC3339`)
       dengan `toISOString()`; pastikan Flutter/Next/Astro parse kedua-duanya.
-- [ ] **`changes()` merentas statement dalam `db.batch()`** (R2); kalau
+- [x] **`changes()` merentas statement dalam `db.batch()`** (R2) - lulus lokal (buang kehadiran, Fasa 5); kalau
       tidak, guna varian `WHERE EXISTS (…)`.
-- [ ] **`INSERT … SELECT … WHERE (subquery)`** menolak pendaftaran ke-
+- [x] **`INSERT … SELECT … WHERE (subquery)`** (lulus lokal: 30 serentak → 10) menolak pendaftaran ke-
       `capacity+1` di bawah permintaan serentak (R1).
-- [ ] **Guard batch PUT sesi** - cara membatalkan `db.batch()` bila sesi
+- [x] **Guard batch PUT sesi** (WHERE `NOT EXISTS` pada padam + insert, tiada statement penjaga) - cara membatalkan `db.batch()` bila sesi
       berkehadiran akan dibuang (`docs/modules/15-activities.md`).
 - [ ] **Had parameter & saiz statement**: 100 parameter, 100 KB.
 - [ ] **`pdf-lib` di workerd**: saiz bundle, CPU untuk **satu** sijil/resit,
