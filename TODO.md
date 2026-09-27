@@ -11,7 +11,7 @@ dokumennya - `ARCHITECTURE.md`/`DATABASE.md` di sana sudah tertinggal.
 
 Status: **Fasa 3 siap; Fasa 0 hampir siap** (lokal). Scaffold features-first, semua
 binding, `shared/` asas, arahan, CI, skema D1; `bun run check` hijau. Belum: remote git,
-rahsia prod (`.env`), deploy pertama. Seterusnya: Fasa 5 (`activities`, `registrations`).
+rahsia prod (`.env`), deploy pertama. Seterusnya: Fasa 6 (`certificates`).
 
 Setiap fasa selesai bila: respons padan `marc_go` (status + bentuk JSON +
 mesej), tiada medan PII baharu, `bun run check` hijau, dan **dokumen
@@ -149,10 +149,13 @@ avatar baharu. Posts/komen/like pariti marc_go (sunting = pemilik; padam =
 pemilik/management). Consumer `notify` (satu INSERT + satu panggilan
 OneSignal). Dashboard dengan sempadan bulan MYT.
 
-## Fasa 5 - `activities`, `registrations`
+## Fasa 5 - `activities`, `registrations` ✅
 
-- [ ] `docs/modules/15`-`16`.
-- [ ] Job `lifecycle`. Ujian kapasiti serentak.
+Siap 2026-09-27. Kategori, aktiviti, sesi (ganti keseluruhan, satu batch
+bersyarat), terbit/batal + notifikasi, job `lifecycle` (tuntut peringatan
+satu statement). Daftar atomik satu statement (30 serentak / kapasiti 10 →
+tepat 10), batal, kehadiran (self_scan / manual / scan / pindaan). Docs
+15/16 dibetulkan ikut kod marc_go (mesej, 422, `registered`+`pending`).
 
 ## Fasa 6 - `certificates`
 

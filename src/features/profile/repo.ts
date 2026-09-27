@@ -362,3 +362,19 @@ export async function isManagement(db: D1Database, userId: string): Promise<bool
   const row = await db.prepare(`SELECT r.category FROM profiles p JOIN roles r ON r.id = p.role_id WHERE p.user_id = ?`).bind(userId).first<{ category: string }>()
   return row?.category === 'management'
 }
+
+// rank(pengguna) >= rank(peranan `roleKey`) - pariti authz.IsAtLeastRole.
+export async function atLeastRole(db: D1Database, userId: string, roleKey: string): Promise<boolean> {
+  // cross-read: roles
+  const row = await db
+    .prepare('SELECT r.rank >= (SELECT rank FROM roles WHERE key = ?) AS ok FROM profiles p JOIN roles r ON r.id = p.role_id WHERE p.user_id = ?')
+    .bind(roleKey, userId)
+    .first<{ ok: number }>()
+  return row?.ok === 1
+}
+
+// Penerima siaran seluruh kelab (aktiviti diterbitkan).
+export async function listApprovedUserIds(db: D1Database): Promise<string[]> {
+  const { results } = await db.prepare("SELECT user_id FROM profiles WHERE status = 'approved'").all<{ user_id: string }>()
+  return results.map((r) => r.user_id)
+}

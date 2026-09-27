@@ -6,11 +6,11 @@ import { isBlocked } from '../blocked-email-domains'
 import { createInitialStmt, isBanned, listManagementUserIds, markEmailVerified } from '../profile'
 import type { Config } from '../../shared/config'
 import { opaqueToken, sha256Hex } from '../../shared/crypto'
-import { chunk, uuid } from '../../shared/db'
+import { uuid } from '../../shared/db'
 import { domainOf, isAllowed, isDisposable } from '../../shared/disposable-email'
 import { emailEnabled, type SendEmail } from '../../shared/email'
 import { ApiError } from '../../shared/http'
-import type { Enqueue } from '../../shared/jobs'
+import { enqueueNotify, type Enqueue } from '../../shared/jobs'
 import { signAccess } from '../../shared/jwt'
 import { normalizeMY } from '../../shared/phone'
 import { revokeSessions, revokeUser } from '../../shared/revocation'
@@ -117,10 +117,7 @@ export async function register(ctx: AuthCtx, input: { email: string; password: s
   // Best-effort, selepas respons: notifikasi tidak menggagalkan pendaftaran.
   ctx.waitUntil(
     (async () => {
-      const recipients = await listManagementUserIds(db)
-      for (const part of chunk(recipients, 1)) {
-        await ctx.deps.enqueue(ctx.env, { type: 'notify', kind: 'member_pending', actorId: userId, recipientIds: part })
-      }
+      await enqueueNotify(ctx.deps.enqueue, ctx.env, { kind: 'member_pending', actorId: userId }, await listManagementUserIds(db))
     })().catch((err) => log('notify member_pending gagal', { error: String(err) })),
   )
   return tokens

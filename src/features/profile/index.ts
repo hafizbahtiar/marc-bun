@@ -2,6 +2,7 @@
 // memanggil operasi di sini (kebanyakannya statement untuk db.batch mereka).
 export { requireApproved, requireMinRole, requireVerified } from './middleware'
 export {
+  atLeastRole,
   banStmt,
   clearTelegram,
   correctMemberIdStmt,
@@ -13,6 +14,7 @@ export {
   isBanned,
   isManagement,
   listAddresses,
+  listApprovedUserIds,
   listBanned,
   listDeletionRequests,
   listDeletionTargets,

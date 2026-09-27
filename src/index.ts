@@ -1,5 +1,6 @@
 // Composition root: tiga entry point Worker, peta job, dan (kelak) sambungan port.
 import { app } from './app'
+import { lifecycle } from './features/activities'
 import { notify } from './features/notifications'
 import { reaper } from './features/uploads'
 import type { CronJob, JobHandler, JobType } from './shared/jobs'
@@ -9,7 +10,7 @@ import type { CronJob, JobHandler, JobType } from './shared/jobs'
 export const cronJobs: Record<string, CronJob[]> = {
   '*/15 * * * *': [reaper],
   '*/30 * * * *': [],
-  '0 * * * *': [],
+  '0 * * * *': [lifecycle],
   '0 19 * * *': [],
 }
 

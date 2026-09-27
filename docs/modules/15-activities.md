@@ -16,7 +16,7 @@ kitaran hayat draf → terbit → selesai / batal.
 | GET | `/activities` | approved | semua; `status=draft` manager ke atas |
 | GET | `/activities/:id` | approved | draf hanya kepada management |
 | POST | `/activities` | verified | management |
-| PATCH | `/activities/:id` | verified | management; wajib `updated_at` |
+| PATCH | `/activities/:id` | verified | management (tiada `updated_at` - pariti marc_go) |
 | POST | `/activities/:id/publish` | verified | management |
 | POST | `/activities/:id/cancel` | verified | management; `reason` wajib |
 | PUT | `/activities/:id/sessions` | verified | management |
@@ -36,7 +36,6 @@ kitaran hayat draf → terbit → selesai / batal.
   (aksara); `fee_cents >= 0`; `capacity > 0` atau NULL (tiada had);
   `attendance_threshold_pct` 1-100 (lalai 100); `currency` lalai `MYR`;
   `registration_closes_at` wajib.
-- Kunci kategori: `^[a-z0-9_]+$`, unik.
 - PATCH separa: medan tiada = kekal; `null` eksplisit pada lajur NOT NULL →
   400. Gabungan dibuat di app daripada baris sedia ada.
 - **Sesi = sumber kebenaran**. `activities.starts_at/ends_at` ialah
@@ -46,10 +45,15 @@ kitaran hayat draf → terbit → selesai / batal.
   - `ends_at > starts_at` bagi setiap sesi.
   - Sesi yang sudah ada kehadiran tidak boleh dibuang → 409
     `sesi yang sudah ada kehadiran tidak boleh diganti`.
-- Notifikasi terbit/batal kepada ahli, **selepas** komit, best-effort.
+- Notifikasi selepas komit, best-effort: terbit → semua ahli `approved`;
+  batal → yang berdaftar sahaja. Dipecah ≤100 penerima (`enqueueNotify`).
+- Kategori: cipta/sunting **manager ke atas**; `key` `^[a-z][a-z0-9_]{1,49}$`,
+  tidak boleh diubah; sunting wajib `updated_at` (CAS).
 - `limit` 1-100, kursor keyset.
 
 ## Job: `lifecycle` (setiap jam)
+
+Peringatan dihantar dengan `selfActor` (pelaku = penerima, pariti marc_go).
 
 1. **Peringatan H-1**: aktiviti `published` bermula dalam ~24 jam dan
    `reminder_sent_at IS NULL` → set `reminder_sent_at` **dahulu**
@@ -62,16 +66,18 @@ kitaran hayat draf → terbit → selesai / batal.
 - **PUT sesi** = satu `db.batch()`: padam sesi lama (dengan guard
   `NOT EXISTS (SELECT 1 FROM activity_attendances …)`), insert baharu,
   `UPDATE activities SET starts_at = (SELECT MIN…), ends_at = (SELECT MAX…)`,
-  audit. Semakan kehadiran mesti **dalam** statement, bukan baca-dahulu;
-  kalau statement padam mengena kurang baris daripada dijangka, batch
-  dibatalkan dengan statement penjaga yang gagal (cth `SELECT RAISE` melalui
-  `CHECK`) - reka dan buktikan dalam ujian.
-- **PATCH** menggantikan `FOR UPDATE` (R1) dengan CAS `updated_at`.
+  audit. Padam DAN setiap insert membawa `NOT EXISTS (kehadiran)` dalam
+  WHERE: bila ada kehadiran, semuanya no-op (tiada baris diinsert → 409),
+  tiada perubahan separa - tanpa perlu statement penjaga yang gagal.
+- **Terbit/batal**: syarat status dalam WHERE; audit berguard `updated_at = now`.
+- **PATCH** menggantikan `FOR UPDATE` (R1) dengan CAS dalaman atas `updated_at`
+  baris yang dibaca; klien tidak menghantarnya. Kalah perlumbaan → 409
+  `stale_write` (00001 §8).
 - Cron Trigger `0 * * * *`.
 
 ## Ujian wajib
 
-- PUT sesi `[]` → 400; tetingkap aktiviti tidak berubah.
+- PUT sesi `[]` → 400 `Data tidak sah` (binding `min=1`); tetingkap tidak berubah.
 - PUT sesi yang membuang sesi berkehadiran → 409; tiada perubahan separa.
 - `starts_at`/`ends_at` = min/max sesi selepas setiap PUT.
 - Dua cron `lifecycle` serentak → satu peringatan setiap ahli.

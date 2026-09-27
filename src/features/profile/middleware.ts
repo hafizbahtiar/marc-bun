@@ -3,7 +3,7 @@
 import type { MiddlewareHandler } from 'hono'
 import { userId } from '../../shared/middleware/auth'
 import type { AppEnv } from '../../shared/types'
-import { gateState } from './repo'
+import { atLeastRole, gateState } from './repo'
 
 export const requireApproved: MiddlewareHandler<AppEnv> = async (c, next) => {
   const state = await gateState(c.env.DB, userId(c)).catch(() => null)
@@ -23,13 +23,7 @@ export function requireMinRole(roleKey: string, forbidden: string): MiddlewareHa
   return async (c, next) => {
     let ok: boolean
     try {
-      const row = await c.env.DB.prepare(
-        // cross-read: roles
-        `SELECT r.rank >= (SELECT rank FROM roles WHERE key = ?) AS ok FROM profiles p JOIN roles r ON r.id = p.role_id WHERE p.user_id = ?`,
-      )
-        .bind(roleKey, userId(c))
-        .first<{ ok: number }>()
-      ok = row?.ok === 1
+      ok = await atLeastRole(c.env.DB, userId(c), roleKey)
     } catch {
       return c.json({ error: 'gagal semak kebenaran' }, 500)
     }

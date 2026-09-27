@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
 import { requestId } from 'hono/request-id'
 import { accountLifecycleRoutes } from './features/account-lifecycle'
+import { activitiesRoutes } from './features/activities'
 import { authRoutes, type AuthDeps } from './features/auth'
 import { bansRoutes } from './features/bans'
 import { blockedEmailDomainsRoutes } from './features/blocked-email-domains'
@@ -11,6 +12,7 @@ import { membersRoutes, type MembersDeps } from './features/members'
 import { notificationsRoutes } from './features/notifications'
 import { postsRoutes } from './features/posts'
 import { profileRoutes, requireApproved, requireVerified } from './features/profile'
+import { registrationsRoutes } from './features/registrations'
 import { telegramRoutes, telegramSend, type TelegramDeps } from './features/telegram'
 import { uploadsRoutes } from './features/uploads'
 import { resendEmail } from './shared/email'
@@ -49,6 +51,8 @@ export function createApp(deps: AppDeps = defaultDeps) {
   app.route('/', postsRoutes(deps))
   app.route('/', notificationsRoutes())
   app.route('/', dashboardRoutes())
+  app.route('/', activitiesRoutes(deps))
+  app.route('/', registrationsRoutes())
 
   app.onError(onError)
   app.notFound(notFound)

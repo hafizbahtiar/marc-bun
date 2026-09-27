@@ -31,12 +31,15 @@ Checkout aktiviti berbayar: [payments](./18-payments.md).
 - `status` ∈ {`pending_payment`, `registered`, `cancelled`};
   `payment_status` ∈ {`not_required`, `pending`, `paid`, `refunded`}.
 - Aktiviti percuma → `registered` + `not_required`. Berbayar →
-  `pending_payment` + `pending` (slot **dipegang**; dilepaskan oleh
-  `activitysweep` bila tidak dibayar).
-- Syarat daftar (mesej `marc_go`): aktiviti mesti `published`
-  (`aktiviti tidak dibuka untuk pendaftaran`), dalam tetingkap
-  `registration_opens_at`..`registration_closes_at` (`pendaftaran ditutup`),
-  belum berdaftar (`sudah berdaftar`), kapasiti belum penuh (`aktiviti penuh`).
+  `registered` + `pending` (slot **dipegang**; dilepaskan oleh
+  `activitysweep` bila tidak dibayar). `pending_payment` wujud dalam `CHECK`
+  tetapi tidak ditulis oleh marc_go.
+- Syarat daftar (mesej `marc_go`, semua 409): aktiviti mesti `published`
+  (`aktiviti belum dibuka`), dalam tetingkap `registration_opens_at`..
+  `registration_closes_at` (`pendaftaran telah ditutup`), belum berdaftar
+  (`anda sudah berdaftar`), kapasiti belum penuh (`aktiviti sudah penuh`).
+  Tiada aktiviti → 404.
+- Batal selepas tamat → **422** `aktiviti sudah tamat, pendaftaran tidak boleh dibatalkan`.
 - Kapasiti mengira semua baris `status <> 'cancelled'` (termasuk
   `pending_payment`).
 - Batal = baris kekal `cancelled`; indeks unik separa
@@ -47,7 +50,7 @@ Checkout aktiviti berbayar: [payments](./18-payments.md).
     `CHECK` tetapi **ditolak** - tiada klien menghasilkannya.)
   - `self_scan`: identiti daripada JWT sahaja; `registration_id`/token dalam
     body → ditolak. QR venue hanya mengekod aktiviti+sesi (bukan kelayakan).
-  - Tetingkap: `[starts_at - 2j, ends_at + 2j]`; di luar = 400
+  - Tetingkap: `[starts_at - 2j, ends_at + 2j]`; di luar = **422**
     `di luar tetingkap check-in`, kecuali **pindaan** management yang diaudit.
   - Tanda dua kali = idempoten (pulang baris sedia ada, `created: false`).
 - Senarai pengurusan membawa `attended_session_ids` (`[]`, bukan `null`).
@@ -70,7 +73,11 @@ Checkout aktiviti berbayar: [payments](./18-payments.md).
 
   Tiada baris dipulangkan → baca sekali untuk memilih mesej ralat yang tepat.
   Indeks unik separa menolak pendaftaran berganda (→ `sudah berdaftar`).
-- Kehadiran: `INSERT … ON CONFLICT DO NOTHING RETURNING` + audit dalam batch.
+- Kehadiran: satu `INSERT … SELECT` dengan semua syarat (pendaftaran aktif,
+  sesi milik aktiviti sama, aktiviti hidup, tetingkap kecuali pindaan)
+  `ON CONFLICT DO NOTHING RETURNING` + audit berguard dalam batch. Tiada
+  baris → baca untuk memilih mesej (susunan marc_go).
+- Buang kehadiran: audit berguard `changes() > 0` (statement padam sebelumnya).
 
 ## Ujian wajib
 
@@ -78,5 +85,5 @@ Checkout aktiviti berbayar: [payments](./18-payments.md).
 - Batal kemudian daftar semula → dibenarkan.
 - Batal selepas aktiviti tamat → ditolak.
 - `self_scan` dengan `registration_id` orang lain → ditolak.
-- Check-in 2j01m sebelum sesi → 400; 1j59m → OK.
+- Check-in 2j01m sebelum sesi → 422; 1j59m → OK.
 - `method: "code"` → 400.

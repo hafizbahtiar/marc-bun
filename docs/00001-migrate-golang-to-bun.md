@@ -447,6 +447,8 @@ Setiap satu mesti disemak dengan pemilik produk sebelum cutover.
 17. **Komen pada post dipadam lembut** → 404 (marc_go: diterima).
 18. **Notifikasi kepada pengguna yang sudah dipadam** dilangkau senyap.
 19. **"Bulan ini" dashboard = MYT** (lihat 4) - dilaksanakan.
+20. **PATCH aktiviti serentak** → yang kalah dapat 409 `stale_write`
+    (marc_go menyerikan dengan `FOR UPDATE`, kedua-duanya berjaya berturutan).
 
 ## 9. Risiko
 

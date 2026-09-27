@@ -5,19 +5,11 @@ import { requireApproved } from '../profile'
 import { getConfig } from '../../shared/config'
 import { ApiError } from '../../shared/http'
 import { requireAuth, userId } from '../../shared/middleware/auth'
-import { toJson } from '../../shared/time'
+import { mytMonthRange, toJson } from '../../shared/time'
 import type { AppEnv } from '../../shared/types'
 import * as repo from './repo'
 
 const MAX_DEPARTMENT_ROWS = 6
-const MYT = 8 * 3600_000
-
-// 1hb bulan semasa 00:00 MYT (marc_go: date_trunc zon sesi DB = UTC,
-// jadi 1hb 00:00-07:59 MYT jatuh ke bulan lepas - dibetulkan).
-export function monthStartMyt(now: number): number {
-  const d = new Date(now + MYT)
-  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1) - MYT
-}
 
 export function dashboardRoutes() {
   const r = new Hono<AppEnv>()
@@ -30,7 +22,7 @@ export function dashboardRoutes() {
       const m = await repo.memberBlock(db, uid, now, outstandingFeeStmt(db, uid, getConfig(c.env).REGISTRATION_FEE_CENTS))
       let admin = null
       if (m.me.is_admin) {
-        const a = await repo.adminBlock(db, now, monthStartMyt(now), m.me.is_superadmin === 1)
+        const a = await repo.adminBlock(db, now, mytMonthRange(now)[0], m.me.is_superadmin === 1)
         const top = a.departments.slice(0, MAX_DEPARTMENT_ROWS)
         const lain = a.departments.slice(MAX_DEPARTMENT_ROWS).reduce((s, d) => s + d.count, 0)
         if (lain > 0) top.push({ code: '', name: 'Lain-lain', count: lain })

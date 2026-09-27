@@ -69,7 +69,7 @@ kongsi, bukan feature.
 
 | Feature | Bergantung pada |
 |---|---|
-| notifications, uploads, audit, activities | - (uploads menerima middleware `verified` dari app.ts - profile mengimport uploads) |
+| notifications, uploads, audit | - (uploads menerima middleware `verified` dari app.ts - profile mengimport uploads) |
 | profile | uploads |
 | departments, blocked-email-domains | profile (`requireMinRole`) |
 | auth | profile, blocked-email-domains |
@@ -77,7 +77,8 @@ kongsi, bukan feature.
 | bans | profile, members |
 | members | auth, profile, departments, uploads |
 | payments | profile, registrations, activities |
-| registrations | activities |
+| activities | profile |
+| registrations | profile *(aktiviti/sesi dibaca melalui JOIN FK - cross-read)* |
 | certificates | activities, registrations, profile, members |
 | posts | uploads, profile |
 | legacy-import | auth, profile, departments |

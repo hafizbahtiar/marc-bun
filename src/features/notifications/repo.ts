@@ -50,11 +50,11 @@ export function insertMany(db: D1Database, msg: NotifyMessage, recipientIds: str
   return db
     .prepare(
       `INSERT INTO notifications (id, recipient_id, actor_id, type, post_id, comment_id, activity_id, certificate_id, created_at)
-       SELECT j.value ->> '$[0]', u.id, ?, ?, ?, ?, ?, ?, ?
-       FROM json_each(?) j JOIN users u ON u.id = j.value ->> '$[1]'
-       WHERE EXISTS (SELECT 1 FROM users WHERE id = ?)`,
+       SELECT j.value ->> '$[0]', u.id, COALESCE(?1, u.id), ?2, ?3, ?4, ?5, ?6, ?7
+       FROM json_each(?8) j JOIN users u ON u.id = j.value ->> '$[1]'
+       WHERE ?1 IS NULL OR EXISTS (SELECT 1 FROM users WHERE id = ?1)`,
     )
-    .bind(msg.actorId, msg.kind, msg.postId ?? null, msg.commentId ?? null, msg.activityId ?? null, msg.certificateId ?? null, now, pairs, msg.actorId)
+    .bind(msg.selfActor ? null : msg.actorId, msg.kind, msg.postId ?? null, msg.commentId ?? null, msg.activityId ?? null, msg.certificateId ?? null, now, pairs)
     .run()
 }
 

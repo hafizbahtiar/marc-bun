@@ -5,7 +5,6 @@
 
 const n = (r: D1Result | undefined) => (r!.results[0] as { n: number }).n
 
-// `monthStart` = 1hb bulan semasa 00:00 MYT (unix ms).
 export async function memberBlock(db: D1Database, userId: string, now: number, outstandingFee: D1PreparedStatement) {
   const [me, certs, total, open, fee] = await db.batch([
     db.prepare(
@@ -36,6 +35,8 @@ export async function memberBlock(db: D1Database, userId: string, now: number, o
   }
 }
 
+// `monthStart` = 1hb bulan semasa 00:00 MYT (marc_go: date_trunc zon sesi DB =
+// UTC, jadi 1hb 00:00-07:59 MYT jatuh ke bulan lepas - dibetulkan).
 export async function adminBlock(db: D1Database, now: number, monthStart: number, withDonations: boolean) {
   // Sesi yang SUDAH TAMAT dalam bulan ini (kadar tidak rendah palsu sepanjang bulan).
   const endedSessions = 'SELECT s.id FROM activity_sessions s WHERE s.ends_at >= ?1 AND s.ends_at < ?2'

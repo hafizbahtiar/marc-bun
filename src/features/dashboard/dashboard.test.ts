@@ -1,7 +1,6 @@
 // "Ujian wajib" docs/modules/14-dashboard.md.
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { ROLE, seedMember, testApp, tokenFor, type Harness } from '../../test/app'
-import { monthStartMyt } from './routes'
 
 let h: Harness
 const quiet = { log: console.log, error: console.error }
@@ -50,11 +49,5 @@ describe('GET /dashboard', () => {
     expect(s.revenue_this_month).toMatchObject({ donation_cents: 500, total_cents: 1500 })
     // manager (bawah admin) tiada blok admin.
     expect((await dash((await seedMember(h, { role: ROLE.manager })).id)).admin).toBeNull()
-  })
-
-  test('sempadan bulan MYT: 1hb 00:30 MYT (= hari terakhir bulan lepas UTC) dalam bulan baharu', () => {
-    const t = Date.UTC(2026, 9, 31, 16, 30) // 1 Nov 00:30 MYT
-    expect(monthStartMyt(t)).toBe(Date.UTC(2026, 9, 31, 16, 0))
-    expect(monthStartMyt(Date.UTC(2026, 9, 31, 15, 59))).toBe(Date.UTC(2026, 8, 30, 16, 0))
   })
 })
