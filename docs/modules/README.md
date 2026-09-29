@@ -82,6 +82,7 @@ kongsi, bukan feature.
 | certificates | activities, members, profile |
 | posts | uploads, profile |
 | legacy-import | auth, profile, departments |
+| audit | uploads, payments, profile |
 | account-lifecycle | auth, members, profile, uploads, payments |
 | dashboard | payments (`outstandingFeeStmt`), profile *(selainnya read-model - cross-read)* |
 

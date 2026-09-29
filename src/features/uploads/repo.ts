@@ -95,3 +95,7 @@ export async function markFailed(db: D1Database, key: string, error: string, now
     .bind(error.slice(0, 500), now, key)
     .run()
 }
+
+// Retention (features/audit): batu nisan yang SUDAH dipadam dari R2, berkeping.
+export const pruneTombstonesStmt = (db: D1Database, before: number, limit: number) =>
+  db.prepare('DELETE FROM deleted_uploads WHERE rowid IN (SELECT rowid FROM deleted_uploads WHERE deleted_at IS NOT NULL AND deleted_at < ? LIMIT ?)').bind(before, limit)

@@ -11,8 +11,10 @@ export async function list(db: D1Database): Promise<DepartmentRow[]> {
   return results
 }
 
-export const create = (db: D1Database, d: { code: string; name: string; sortOrder: number; addedBy: string }) =>
-  db.prepare('INSERT INTO departments (code, name, sort_order, added_by) VALUES (?, ?, ?, ?) RETURNING *').bind(d.code, d.name, d.sortOrder, d.addedBy).first<DepartmentRow>()
+export const createStmt = (db: D1Database, d: { code: string; name: string; sortOrder: number; addedBy: string }) =>
+  db.prepare('INSERT INTO departments (code, name, sort_order, added_by) VALUES (?, ?, ?, ?) RETURNING *').bind(d.code, d.name, d.sortOrder, d.addedBy)
+
+export const create = (db: D1Database, d: { code: string; name: string; sortOrder: number; addedBy: string }) => createStmt(db, d).first<DepartmentRow>()
 
 export const update = (db: D1Database, code: string, name: string | null, sortOrder: number | null) =>
   db.prepare('UPDATE departments SET name = COALESCE(?, name), sort_order = COALESCE(?, sort_order) WHERE code = ? RETURNING *').bind(name, sortOrder, code).first<DepartmentRow>()

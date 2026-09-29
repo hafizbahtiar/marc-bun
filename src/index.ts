@@ -1,6 +1,7 @@
 // Composition root: tiga entry point Worker, peta job, dan (kelak) sambungan port.
 import { app } from './app'
 import { lifecycle } from './features/activities'
+import { retention } from './features/audit'
 import { notify } from './features/notifications'
 import { activitySweep, reconcile, registrationSweep } from './features/payments'
 import { reaper } from './features/uploads'
@@ -12,7 +13,7 @@ export const cronJobs: Record<string, CronJob[]> = {
   '*/15 * * * *': [reaper, activitySweep, registrationSweep],
   '*/30 * * * *': [reconcile],
   '0 * * * *': [lifecycle],
-  '0 19 * * *': [],
+  '0 19 * * *': [retention],
 }
 
 // Tambah jenis mesej = satu entri: notify: notifications.consume

@@ -2,8 +2,10 @@
 // memanggil operasi di sini (kebanyakannya statement untuk db.batch mereka).
 export { blockTesterWrites, requireApproved, requireMinRole, requireVerified } from './middleware'
 export {
+  applyLegacyStmt,
   atLeastRole,
   banStmt,
+  createLegacyStmt,
   clearTelegram,
   correctMemberIdStmt,
   correctStaffIdStmt,
@@ -32,6 +34,7 @@ export {
   userIdByTelegramChat,
   verifyStaffIdStmt,
   type AddressRow,
+  type LegacyFields,
   type MemberRow,
 } from './repo'
 export { addressDto } from './dto'

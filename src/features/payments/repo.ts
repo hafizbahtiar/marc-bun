@@ -218,3 +218,7 @@ export async function pendingActivityPayments(db: D1Database, staleBefore: numbe
     .all<{ id: string; user_id: string; payment_status: string; payment_ref: string }>()
   return results
 }
+
+// Retention (features/audit), berkeping.
+export const prunePaymentLogsStmt = (db: D1Database, before: number, limit: number) =>
+  db.prepare('DELETE FROM payment_logs WHERE id IN (SELECT id FROM payment_logs WHERE created_at < ? LIMIT ?)').bind(before, limit)

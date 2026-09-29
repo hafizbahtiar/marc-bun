@@ -13,8 +13,11 @@ export const findUserByEmail = (db: D1Database, email: string) =>
 export const findUserEmail = async (db: D1Database, id: string) =>
   (await db.prepare('SELECT email FROM users WHERE id = ?').bind(id).first<{ email: string }>())?.email ?? null
 
-export const createUserStmt = (db: D1Database, u: { id: string; email: string; passwordHash: string }) =>
-  db.prepare('INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)').bind(u.id, u.email, u.passwordHash)
+// `guard` (pilihan) = syarat SQL batch pemanggil (cth token tuntutan legacy baru digunakan).
+export const createUserStmt = (db: D1Database, u: { id: string; email: string; passwordHash: string }, guard?: { sql: string; params: unknown[] }) =>
+  guard
+    ? db.prepare(`INSERT INTO users (id, email, password_hash) SELECT ?, ?, ? WHERE ${guard.sql}`).bind(u.id, u.email, u.passwordHash, ...guard.params)
+    : db.prepare('INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)').bind(u.id, u.email, u.passwordHash)
 
 // ---- refresh_tokens ----
 

@@ -10,7 +10,7 @@ const bytes = (s: string) => new TextEncoder().encode(s).length
 // `required` Go: tiada / null / "" → mesej medan; jenis salah → Data tidak sah.
 const required = (message: string) => z.string({ error: (i) => (i.input == null ? message : INVALID_DATA) }).min(1, message)
 
-const email = required('Email diperlukan').email('Format email tidak sah')
+export const email = required('Email diperlukan').email('Format email tidak sah')
 
 const TOO_LONG = 'Kata laluan terlalu panjang (maksimum 72 aksara)'
 // bcrypt memotong senyap selepas 72 BAIT - tolak, jangan simpan hash yang

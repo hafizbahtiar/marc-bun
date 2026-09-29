@@ -382,3 +382,56 @@ export async function listApprovedUserIds(db: D1Database): Promise<string[]> {
 // Telefon disimpan semasa checkout bayaran (ToyyibPay wajibkan billPhone).
 export const setPhone = (db: D1Database, userId: string, phone: string, now: number) =>
   db.prepare('UPDATE profiles SET phone = ?, updated_at = ? WHERE user_id = ?').bind(phone, now, userId).run()
+
+// ---- legacy-import (rekod eksport MARC 2026) ----
+
+export type LegacyFields = {
+  displayName: string
+  phone: string
+  departmentCode: string
+  position: string
+  emergencyName: string
+  emergencyPhone: string
+  healthNotes: string
+  staffId: string
+  memberId: string
+  legacyStatus: string
+}
+
+// Import ke akaun SEDIA ADA: medan kosong sahaja diisi (COALESCE), staff_id
+// placeholder (= user_id) diganti. Pariti handlers/legacy_member_import.go.
+export const applyLegacyStmt = (db: D1Database, userId: string, f: LegacyFields, now: number) =>
+  db
+    .prepare(
+      `UPDATE profiles SET
+         display_name = COALESCE(display_name, NULLIF(?2, '')),
+         phone = COALESCE(phone, NULLIF(?3, '')),
+         department_code = COALESCE(department_code, NULLIF(?4, '')),
+         position = COALESCE(position, NULLIF(?5, '')),
+         emergency_contact_name = COALESCE(emergency_contact_name, NULLIF(?6, '')),
+         emergency_contact_phone = COALESCE(emergency_contact_phone, NULLIF(?7, '')),
+         health_notes = COALESCE(health_notes, NULLIF(?8, '')),
+         staff_id = CASE WHEN staff_id = user_id THEN ?9 ELSE staff_id END,
+         member_id = COALESCE(member_id, NULLIF(?10, '')),
+         is_active = CASE ?11 WHEN 'Aktif' THEN 1 WHEN 'Tidak Aktif' THEN 0 ELSE is_active END,
+         staff_id_verified_at = COALESCE(staff_id_verified_at, ?12),
+         updated_at = ?12
+       WHERE user_id = ?1`,
+    )
+    .bind(userId, f.displayName, f.phone, f.departmentCode, f.position, f.emergencyName, f.emergencyPhone, f.healthNotes, f.staffId, f.memberId, f.legacyStatus, now)
+
+// Tuntutan: profil ahli diluluskan + emel disahkan. `guard` = syarat SQL batch
+// (token claim ini yang baru digunakan) supaya tuntutan serentak tidak bertindih.
+export const createLegacyStmt = (db: D1Database, p: LegacyFields & { id: string; userId: string; verifiedBy: string | null; now: number }, guard: { sql: string; params: unknown[] }) =>
+  db
+    .prepare(
+      `INSERT INTO profiles (id, user_id, member_id, staff_id, display_name, phone, role_id, email_verified, status, department_code, position,
+         emergency_contact_name, emergency_contact_phone, health_notes, staff_id_verified_at, staff_id_verified_by, created_at, updated_at)
+       SELECT ?, ?, NULLIF(?, ''), ?, NULLIF(?, ''), NULLIF(?, ''), (SELECT id FROM roles WHERE key = 'ahli'), 1, 'approved', NULLIF(?, ''), NULLIF(?, ''),
+         NULLIF(?, ''), NULLIF(?, ''), NULLIF(?, ''), ?, ?, ?, ?
+       WHERE ${guard.sql}`,
+    )
+    .bind(
+      p.id, p.userId, p.memberId, p.staffId, p.displayName, p.phone, p.departmentCode, p.position,
+      p.emergencyName, p.emergencyPhone, p.healthNotes, p.now, p.verifiedBy, p.now, p.now, ...guard.params,
+    ) // prettier-ignore

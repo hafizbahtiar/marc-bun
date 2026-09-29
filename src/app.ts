@@ -3,12 +3,14 @@ import { bodyLimit } from 'hono/body-limit'
 import { requestId } from 'hono/request-id'
 import { accountLifecycleRoutes } from './features/account-lifecycle'
 import { activitiesRoutes } from './features/activities'
+import { auditRoutes } from './features/audit'
 import { authRoutes, type AuthDeps } from './features/auth'
 import { bansRoutes } from './features/bans'
 import { blockedEmailDomainsRoutes } from './features/blocked-email-domains'
 import { certificatesRoutes } from './features/certificates'
 import { dashboardRoutes } from './features/dashboard'
 import { departmentsRoutes } from './features/departments'
+import { legacyImportRoutes } from './features/legacy-import'
 import { membersRoutes, type MembersDeps } from './features/members'
 import { notificationsRoutes } from './features/notifications'
 import { gatewaysFor, paymentsRoutes, type PaymentsDeps } from './features/payments'
@@ -57,6 +59,8 @@ export function createApp(deps: AppDeps = defaultDeps) {
   app.route('/', registrationsRoutes())
   app.route('/', certificatesRoutes(deps))
   app.route('/', paymentsRoutes(deps))
+  app.route('/', auditRoutes())
+  app.route('/', legacyImportRoutes(deps))
 
   app.onError(onError)
   app.notFound(notFound)

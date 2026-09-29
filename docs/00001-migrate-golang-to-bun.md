@@ -459,6 +459,12 @@ Setiap satu mesti disemak dengan pemilik produk sebelum cutover.
     200) - kelewatan pembetulan lebih panjang bila ratusan bayaran pending serentak.
 25. **Batal bil pendaftaran (status gateway `failed`)**: audit dalam batch yang
     sama dengan kemas kini (marc_go: dua langkah berasingan).
+26. **Dry-run legacy > 1 MB** → 400 `Data tidak sah` (had badan global) dan
+    bukan `fail CSV diperlukan`.
+27. **Pautan tuntutan legacy tidak dilog di produksi** bila emel belum
+    dikonfigurasi (sama seperti 10).
+28. **Import legacy** memproses ~490 akaun sedia ada setiap panggilan (marc_go:
+    satu transaksi tanpa had) - panggilan berulang menyambung, tiada pendua.
 
 ## 9. Risiko
 

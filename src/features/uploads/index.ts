@@ -3,3 +3,4 @@ export { deletePendingStmt, enqueueDeleteStmt, enqueuePostImagesStmt, enqueueUse
 export { reaper } from './jobs'
 export { uploadsRoutes } from './routes'
 export { MAX_IMAGES_PER_POST, signedUrl, verifyUploadedImage } from './service'
+export { pruneTombstonesStmt } from './repo'

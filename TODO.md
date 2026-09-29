@@ -11,7 +11,7 @@ dokumennya - `ARCHITECTURE.md`/`DATABASE.md` di sana sudah tertinggal.
 
 Status: **Fasa 3 siap; Fasa 0 hampir siap** (lokal). Scaffold features-first, semua
 binding, `shared/` asas, arahan, CI, skema D1; `bun run check` hijau. Belum: remote git,
-rahsia prod (`.env`), deploy pertama. Seterusnya: Fasa 8 (`audit`, `legacy-import`).
+rahsia prod (`.env`), deploy pertama. Seterusnya: Fasa 9 (data & cutover).
 
 Setiap fasa selesai bila: respons padan `marc_go` (status + bentuk JSON +
 mesej), tiada medan PII baharu, `bun run check` hijau, dan **dokumen
@@ -179,9 +179,13 @@ Belum disahkan terhadap gateway sebenar: createBill/getBillTransactions
 ToyyibPay dan PaymentIntent Stripe hanya diuji dengan fetch disimulasi -
 uji sekali dengan sandbox (`dev.toyyibpay.com`, kunci `sk_test`) sebelum cutover.
 
-## Fasa 8 - `audit`, `legacy-import`
+## Fasa 8 - `audit`, `legacy-import` ✅
 
-- [ ] `docs/modules/09-audit.md` (+ job `retention`), `10-legacy-import.md`.
+Siap 2026-09-29. `/audit-logs` + job `retention` harian berkeping (redaksi PII,
+padam audit, batu nisan upload, payment_logs). Legacy import: parser CSV tulen
+(port ujian Go), dry-run/batch/import/resolve-department/sunting baris dengan
+kira-semula seluruh batch dalam satu statement json_each, tuntutan akaun
+(respons seragam, token sekali-guna, serentak = satu akaun).
 
 ## Fasa 9 - Data & cutover
 

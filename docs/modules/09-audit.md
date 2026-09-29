@@ -52,9 +52,14 @@ Tapisan: `entity_type`, `entity_id`, `action`, `actor_id`. Keyset:
 
 ## Cloudflare
 
-- Cron Trigger harian. Setiap sapuan **berkeping** (R8):
-  `… WHERE id IN (SELECT id … LIMIT 1000)` dalam gelung dengan had pusingan
-  per invokasi - had 30 s setiap query.
+- Cron Trigger harian (`0 19 * * *` = 03:00 MYT). Setiap sapuan **berkeping**
+  (R8): `… WHERE id IN (SELECT id … LIMIT 1000)` dalam gelung, maks 20 pusingan
+  setiap sapuan setiap larian; baki disambung esok.
+- Batu nisan upload dan `payment_logs` dipadam melalui statement eksport
+  pemiliknya (`uploads.pruneTombstonesStmt`, `payments.prunePaymentLogsStmt`) -
+  audit tidak menulis jadual orang lain.
+- `/audit-logs`: `old_values`/`new_values` dipulangkan sebagai JSON, bukan
+  rentetan; `ip_address`/`user_agent` tidak pernah dipulangkan.
 - Trigger SQLite `BEFORE UPDATE … RAISE(ABORT, …)` menggantikan trigger
   plpgsql.
 

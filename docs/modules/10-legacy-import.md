@@ -50,12 +50,21 @@ semak konflik, import baris bersih, dan biar ahli yang belum ada akaun
 
 ## Cloudflare
 
-- **Had 100 parameter / 100 KB statement** (R5 `00001` risiko 5): semua
-  insert baris staging dan import **dikeping** dengan `chunk()`.
+- **Had 100 parameter / query setiap invokasi**: insert staging, kemas kini
+  kira-semula dan penandaan import masing-masing **SATU statement** atas
+  `json_each(?)` (INSERT…SELECT / UPDATE…FROM) - 1,000 baris = satu query.
+  Semakan konflik akaun sebenar = tiga query (emel, staff_id, member_id), bukan
+  tiga setiap baris.
+- **Import**: 2 statement setiap akaun SEDIA ADA (kemas kini profil + audit)
+  dalam satu batch - ~490 akaun setiap panggilan; panggil semula untuk baki.
+- **Claim complete**: batch [guna token (guard `consumed_at IS NULL`), cipta
+  user, cipta profil, tanda baris] - tiga yang terakhir bersyarat pada token
+  INI baru digunakan, jadi tuntutan serentak = tepat satu akaun; yang kalah → 400.
+- Pautan tuntutan dilog hanya di development bila emel belum dikonfigurasi.
 - Import boleh diulang: setiap baris yang sudah diimport ditanda, jadi
   permintaan yang terputus disambung, bukan diduplikasi.
-- `multipart` dibaca dengan `c.req.parseBody()` (Web `FormData`), had 1 MB
-  disemak sebelum parse.
+- `multipart` dibaca dengan `c.req.parseBody()` (Web `FormData`); badan > 1 MB
+  ditolak oleh had global lebih dahulu (`Data tidak sah`, lihat `00001` §8).
 - Batch besar melebihi had CPU/query satu permintaan → proses N baris setiap
   panggilan dan pulangkan kemajuan (klien memanggil semula) - sama corak
   dengan R7.
