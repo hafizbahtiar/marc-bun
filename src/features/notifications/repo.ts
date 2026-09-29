@@ -45,12 +45,15 @@ export const removeSelected = (db: D1Database, recipientId: string, ids: string[
 // Satu kenyataan untuk ≤100 penerima (pasangan [id, penerima] sebagai JSON).
 // cross-read: users - penerima/pelaku yang sudah dipadam dilangkau, bukan
 // melanggar FK dan membuat mesej di-retry selama-lamanya.
+// cross-read: activity_certificates - certificate_ready tanpa certificateId
+// dipautkan kepada sijil SENDIRI setiap penerima (satu mesej, ≤100 penerima).
 export function insertMany(db: D1Database, msg: NotifyMessage, recipientIds: string[], now: number) {
   const pairs = JSON.stringify(recipientIds.map((r) => [crypto.randomUUID(), r]))
   return db
     .prepare(
       `INSERT INTO notifications (id, recipient_id, actor_id, type, post_id, comment_id, activity_id, certificate_id, created_at)
-       SELECT j.value ->> '$[0]', u.id, COALESCE(?1, u.id), ?2, ?3, ?4, ?5, ?6, ?7
+       SELECT j.value ->> '$[0]', u.id, COALESCE(?1, u.id), ?2, ?3, ?4, ?5,
+         COALESCE(?6, CASE WHEN ?2 = 'certificate_ready' THEN (SELECT id FROM activity_certificates WHERE activity_id = ?5 AND user_id = u.id) END), ?7
        FROM json_each(?8) j JOIN users u ON u.id = j.value ->> '$[1]'
        WHERE ?1 IS NULL OR EXISTS (SELECT 1 FROM users WHERE id = ?1)`,
     )

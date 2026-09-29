@@ -11,7 +11,7 @@ dokumennya - `ARCHITECTURE.md`/`DATABASE.md` di sana sudah tertinggal.
 
 Status: **Fasa 3 siap; Fasa 0 hampir siap** (lokal). Scaffold features-first, semua
 binding, `shared/` asas, arahan, CI, skema D1; `bun run check` hijau. Belum: remote git,
-rahsia prod (`.env`), deploy pertama. Seterusnya: Fasa 6 (`certificates`).
+rahsia prod (`.env`), deploy pertama. Seterusnya: Fasa 7 (`payments`).
 
 Setiap fasa selesai bila: respons padan `marc_go` (status + bentuk JSON +
 mesej), tiada medan PII baharu, `bun run check` hijau, dan **dokumen
@@ -21,11 +21,9 @@ modul berkenaan dikemas kini** kalau kelakuan berbeza.
 
 ## Keputusan yang menyekat kerja lain
 
-- [ ] **Font PDF (R11).** Hadkan teks sijil/resit kepada WinAnsi dengan
-      pengesahan eksplisit (pariti `marc_go`), atau tanam TTF Unicode
-      (fontkit, bundle lebih besar).
+- [x] **Font PDF (R11).** WinAnsi + pengesahan eksplisit (2026-09-29).
 - [x] **"Bulan ini" dashboard.** MYT - dilaksanakan Fasa 4 (`00001` §8.19).
-- [ ] **Nombor siri sijil (R4).** Terima jurang siri + dokumen (cadangan).
+- [x] **Nombor siri sijil (R4).** Terima jurang siri (dilaksana Fasa 6).
 - [ ] **Origin CORS.** Senaraikan `CORS_ALLOWED_ORIGINS` (web Flutter,
       `marc_astro`, staging) sebelum CORS global - `00001` §8.1.
 - [ ] **Staging.** Tiada sekarang (`00000` §4.1). Perlu sebelum cutover
@@ -67,7 +65,7 @@ Sudah disahkan 2026-09-26 (wrangler 4.141, Bun 1.4.2) - ujian dalam
 - [x] **Guard batch PUT sesi** (WHERE `NOT EXISTS` pada padam + insert, tiada statement penjaga) - cara membatalkan `db.batch()` bila sesi
       berkehadiran akan dibuang (`docs/modules/15-activities.md`).
 - [ ] **Had parameter & saiz statement**: 100 parameter, 100 KB.
-- [ ] **`pdf-lib` di workerd**: saiz bundle, CPU untuk **satu** sijil/resit,
+- [x] **`pdf-lib` di workerd** (~8 ms/sijil, bundle 394 KiB gzip): saiz bundle, CPU untuk **satu** sijil/resit,
       kelakuan aksara bukan WinAnsi.
 - [ ] **`bcryptjs`** terhadap hash `$2a$`/`$2b$` sedia ada + had 72 bait.
 - [ ] **KV `signedUrl`** - URL stabil merentas dua permintaan berturutan.
@@ -161,10 +159,13 @@ satu statement). Daftar atomik satu statement (30 serentak / kapasiti 10 →
 tepat 10), batal, kehadiran (self_scan / manual / scan / pindaan). Docs
 15/16 dibetulkan ikut kod marc_go (mesej, 422, `registered`+`pending`).
 
-## Fasa 6 - `certificates`
+## Fasa 6 - `certificates` ✅
 
-- [ ] `docs/modules/17-certificates.md`.
-- [ ] PDF on-demand + pengesahan font; halaman verify awam medan-terhad.
+Siap 2026-09-29. Terbit (metadata + snapshot, satu tempahan julat siri,
+batch), tarik balik, `/me/certificates`, PDF on-demand (`pdf-lib` + `uqr`,
+WinAnsi dengan pengesahan medan), verify awam medan-terhad, templat
+(PATCH/publish CAS). Notifikasi `certificate_ready` satu mesej, sijil
+dipautkan oleh consumer.
 
 ## Fasa 7 - `payments`
 

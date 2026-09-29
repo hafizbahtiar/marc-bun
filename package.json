@@ -27,6 +27,8 @@
     "bcryptjs": "^3.0.3",
     "hono": "^4.13.9",
     "jose": "^6.2.12",
+    "pdf-lib": "^1.17.1",
+    "uqr": "^0.1.3",
     "zod": "^4.6.5"
   },
   "devDependencies": {

@@ -32,6 +32,8 @@ export type NotifyMessage = {
   // Pelaku = penerima sendiri (peringatan sistem; pariti activitylifecycle
   // marc_go). `actorId` diabaikan dan penerima tidak ditapis.
   selfActor?: true
+  // Pelaku turut menerima (certificate_ready: pengurus yang menyertai aktiviti).
+  includeActor?: true
 }
 
 export type JobMessage = NotifyMessage

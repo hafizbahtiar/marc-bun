@@ -190,3 +190,7 @@ export async function claimReminders(db: D1Database, now: number): Promise<{ id:
 
 // Pariti marc_go: tidak menyentuh updated_at.
 export const completeEnded = (db: D1Database, now: number) => db.prepare("UPDATE activities SET status = 'completed' WHERE status = 'published' AND ends_at < ?").bind(now).run()
+
+// Untuk features/certificates (pemilik lajur = activities).
+export const markCertificatesIssuedStmt = (db: D1Database, id: string, now: number) =>
+  db.prepare('UPDATE activities SET certificates_issued_at = ?, updated_at = ? WHERE id = ?').bind(now, now, id)

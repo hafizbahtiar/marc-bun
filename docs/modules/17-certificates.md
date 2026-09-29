@@ -14,7 +14,7 @@ dimuat turun, tarik balik, templat gaya, dan pengesahan awam melalui QR.
 | POST | `/certificates/:id/revoke` | verified | management |
 | GET | `/me/certificates` | approved | sendiri |
 | GET | `/me/certificates/:id/file` | approved | sendiri; PDF dijana on-demand |
-| GET | `/verify/certificates/:token` | **awam** + CORS GET | baldi `verify` sendiri |
+| GET | `/verify/certificates/:token` | **awam** + CORS GET | baldi `RL_VERIFY` sendiri |
 | GET | `/admin/certificate-templates` | verified | management |
 | GET, PATCH | `/admin/certificate-templates/:id` | verified | management; PATCH wajib `updated_at` |
 | POST | `/admin/certificate-templates/:id/publish` | verified | management |
@@ -22,9 +22,11 @@ dimuat turun, tarik balik, templat gaya, dan pengesahan awam melalui QR.
 ## Data
 
 - **Milik**: `activity_certificates`, `certificate_templates`.
-- **Melalui pemilik**: `members.nextSequence('certificate', n)`,
-  `activities.findWithSessions()`, `registrations.attendanceSummary()`,
-  `profile.findById()`; mesej `notify` (`certificate_ready`).
+- **Melalui pemilik**: `members.nextSequence('certificate_serial', now, n)`
+  (satu tempahan julat), `activities.markCertificatesIssuedStmt`,
+  `profile.isManagement`; mesej `notify` (`certificate_ready`).
+- **Cross-read**: aktiviti/kategori/sesi, pendaftaran + kehadiran + profil
+  (calon layak) - bacaan sahaja.
 
 ## Peraturan
 
@@ -32,6 +34,14 @@ dimuat turun, tarik balik, templat gaya, dan pengesahan awam melalui QR.
   `attended * 100 >= totalSessions * thresholdPct`, integer, bukan float;
   `totalSessions <= 0` → tidak layak.
 - Terbit hanya **selepas sesi terakhir tamat** → 422.
+- Calon: `status = 'registered'` dan (`fee_cents = 0` atau `payment_status = 'paid'`);
+  nama = `COALESCE(display_name, member_id)`. Respons
+  `{issued, files_ready, message: "sijil siap dimuat turun"}`.
+- Siri `MARC-<tahun MYT starts_at>-<6 digit>`; `activity_date` = tarikh MYT.
+- Tajuk/kategori/nama yang tidak boleh dicetak → 422
+  `medan sijil tidak boleh dicetak: <Medan> "<nilai>"`, **sebelum** siri ditempah.
+- `certificate_ready`: satu mesej ≤100 penerima, `includeActor` (pengurus yang
+  hadir juga penerima); consumer memautkan `certificate_id` sijil setiap penerima.
 - **Terbit = metadata sahaja**: siri, `verify_token`, dan **snapshot** (nama
   penerima, tajuk aktiviti, kategori, tarikh, gaya templat) disimpan dalam
   baris. PDF **tidak** disimpan di R2 - dijana setiap muat turun daripada
@@ -54,6 +64,10 @@ dimuat turun, tarik balik, templat gaya, dan pengesahan awam melalui QR.
   panjang ikut lebar.
 - Templat: suntingan disimpan sebagai draf, `publish` menjadikannya lalai
   untuk penerbitan seterusnya. Sijil sedia ada tidak berubah (snapshot).
+  PATCH/publish wajib `updated_at`; id tidak wujud → 409 `stale_write`
+  (pariti). Panjang medan dikira dalam **bait** (pariti `len()` Go).
+- Font: **WinAnsi** (Helvetica standard) - diputuskan 2026-09-29. Nama
+  bukan-Latin → 422 menamakan medan. TTF Unicode bila ada keperluan sebenar.
 
 ## Cloudflare
 
@@ -63,8 +77,10 @@ dimuat turun, tarik balik, templat gaya, dan pengesahan awam melalui QR.
 - Tiada Durable Object diperlukan: unik `(activity_id, user_id)` +
   `INSERT … ON CONFLICT DO NOTHING` menjadikan penerbitan serentak selamat.
   (Ini menggantikan cadangan DO dalam R1/R7 `00001`.)
-- **Muat turun**: `pdf-lib` dalam permintaan. Satu PDF, bukan 200 - had CPU
-  memadai; ukur (`TODO.md` verifikasi).
+- **Muat turun**: `pdf-lib` + `uqr` (QR) dalam permintaan. Diukur: ~8 ms CPU
+  satu PDF, bundle 394 KiB gzip.
+- **Terbit publish templat**: nyahaktif yang lain berguard CAS sasaran dalam
+  batch yang sama.
 - `verify` di belakang baldi `ratelimits` sendiri - trafik awam tidak boleh
   menghabiskan kuota log masuk ahli.
 

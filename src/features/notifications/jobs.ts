@@ -6,7 +6,7 @@ import * as repo from './repo'
 const ONESIGNAL_URL = 'https://onesignal.com/api/v1/notifications'
 
 export const notify: JobHandler = async (env, msg) => {
-  const recipients = [...new Set(msg.recipientIds)].filter((id) => msg.selfActor || id !== msg.actorId)
+  const recipients = [...new Set(msg.recipientIds)].filter((id) => msg.selfActor || msg.includeActor || id !== msg.actorId)
   if (!recipients.length) return
   // Gagal DB = lempar → queue retry (kenyataan tunggal: tiada separuh tulis).
   await repo.insertMany(env.DB, msg, recipients, Date.now())

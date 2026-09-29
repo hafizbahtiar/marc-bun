@@ -449,6 +449,12 @@ Setiap satu mesti disemak dengan pemilik produk sebelum cutover.
 19. **"Bulan ini" dashboard = MYT** (lihat 4) - dilaksanakan.
 20. **PATCH aktiviti serentak** → yang kalah dapat 409 `stale_write`
     (marc_go menyerikan dengan `FOR UPDATE`, kedua-duanya berjaya berturutan).
+21. **PDF sijil**: nama penandatangan/penerbit tidak lagi bertindih dengan QR
+    (marc_go: sel kanan sampai x=277 mm, sama dengan tepi QR).
+22. **Terbit templat sijil lapuk** → 409 tanpa menyahaktif templat lain
+    (marc_go: CTE nyahaktif tetap jalan walaupun CAS gagal → tiada templat aktif).
+23. **`updated_at` templat sijil** dipulangkan dalam ms (marc_go: dipotong ke
+    saat → PATCH berikutnya sentiasa 409; lihat 5).
 
 ## 9. Risiko
 

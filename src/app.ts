@@ -6,6 +6,7 @@ import { activitiesRoutes } from './features/activities'
 import { authRoutes, type AuthDeps } from './features/auth'
 import { bansRoutes } from './features/bans'
 import { blockedEmailDomainsRoutes } from './features/blocked-email-domains'
+import { certificatesRoutes } from './features/certificates'
 import { dashboardRoutes } from './features/dashboard'
 import { departmentsRoutes } from './features/departments'
 import { membersRoutes, type MembersDeps } from './features/members'
@@ -53,6 +54,7 @@ export function createApp(deps: AppDeps = defaultDeps) {
   app.route('/', dashboardRoutes())
   app.route('/', activitiesRoutes(deps))
   app.route('/', registrationsRoutes())
+  app.route('/', certificatesRoutes(deps))
 
   app.onError(onError)
   app.notFound(notFound)

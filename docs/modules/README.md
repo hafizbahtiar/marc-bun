@@ -79,7 +79,7 @@ kongsi, bukan feature.
 | payments | profile, registrations, activities |
 | activities | profile |
 | registrations | profile *(aktiviti/sesi dibaca melalui JOIN FK - cross-read)* |
-| certificates | activities, registrations, profile, members |
+| certificates | activities, members, profile |
 | posts | uploads, profile |
 | legacy-import | auth, profile, departments |
 | account-lifecycle | auth, members, profile, uploads, payments |
