@@ -201,6 +201,28 @@ kira-semula seluruh batch dalam satu statement json_each, tuntutan akaun
       resit, satu sijil, satu QR pengesahan, satu webhook ToyyibPay lama.
 - [ ] `marc_go` baca-sahaja sehingga stabil.
 
+## Skrip data (susulan)
+
+- [x] **Backup D1** - `bun run db:backup:remote` (`wrangler d1 export --remote`
+      → `backups/marc-<YYYYMMDD-HHMMSS>.sql`, gitignored). Pelengkap: Time
+      Travel (`db:bookmark:remote` / `db:restore:remote`, 30 hari).
+  - [ ] Sahkan sekali terhadap D1 produksi (saiz, masa, boleh diimport semula
+        ke D1 lokal dengan `wrangler d1 execute --local --file`).
+- [ ] **Tukar backup D1 → PostgreSQL** (`scripts/d1-to-postgres.ts`) - jalan
+      keluar dari Cloudflare / rollback ke `marc_go` selepas cutover. Arah
+      terbalik `00001` §2 + §6:
+  - Dialek: `INSERT` SQLite → Postgres; `PRAGMA`/`sqlite_sequence`/`d1_migrations`
+    dibuang; skema diambil dari migrasi `marc_go`, bukan dari dump.
+  - Jenis: `INTEGER` unix ms → `timestamptz` (`to_timestamp(ms / 1000.0)`,
+    mikrosaat hilang tetapi ms kekal); `0/1` → `boolean`; `TEXT` JSON → `jsonb`;
+    `TEXT` UUID → `uuid`; `activity_date` kekal `date`.
+  - Jadual yang berbeza bentuk antara dua backend (cth `activity_certificates`
+    tanpa `r2_key`, `registration_payments.gateway_ref` nullable,
+    `donations.donor_email` disalin) - senaraikan dan petakan satu-satu.
+  - `audit_logs`/`payment_logs` id INTEGER → `bigserial` + `setval`.
+  - Pengesahan: kiraan baris setiap jadual dan jumlah `amount_cents` sama
+    sebelum/selepas; uji dengan `psql` terhadap Postgres lokal (Docker).
+
 ## Risiko diterima
 
 - **Jurang siri sijil** (R4).
