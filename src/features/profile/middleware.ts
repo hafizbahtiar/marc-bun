@@ -31,3 +31,20 @@ export function requireMinRole(roleKey: string, forbidden: string): MiddlewareHa
     await next()
   }
 }
+
+// Akaun `tester` (semakan app store) disekat daripada bayaran sebenar. Tanpa
+// log masuk (derma awam) = lalu. Pariti middleware.BlockTesterWrites.
+export const blockTesterWrites: MiddlewareHandler<AppEnv> = async (c, next) => {
+  const uid = c.get('userId')
+  if (uid) {
+    let key: string | undefined
+    try {
+      // cross-read: roles
+      key = (await c.env.DB.prepare('SELECT r.key FROM profiles p JOIN roles r ON r.id = p.role_id WHERE p.user_id = ?').bind(uid).first<{ key: string }>())?.key
+    } catch {
+      return c.json({ error: 'gagal semak kebenaran' }, 500)
+    }
+    if (key === 'tester') return c.json({ error: 'akaun tester tidak boleh membuat bayaran sebenar' }, 403)
+  }
+  await next()
+}

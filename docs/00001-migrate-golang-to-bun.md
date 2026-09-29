@@ -455,6 +455,10 @@ Setiap satu mesti disemak dengan pemilik produk sebelum cutover.
     (marc_go: CTE nyahaktif tetap jalan walaupun CAS gagal → tiada templat aktif).
 23. **`updated_at` templat sijil** dipulangkan dalam ms (marc_go: dipotong ke
     saat → PATCH berikutnya sentiasa 409; lihat 5).
+24. **Reconcile bayaran** memproses 50 baris setiap jenis setiap 30 min (marc_go
+    200) - kelewatan pembetulan lebih panjang bila ratusan bayaran pending serentak.
+25. **Batal bil pendaftaran (status gateway `failed`)**: audit dalam batch yang
+    sama dengan kemas kini (marc_go: dua langkah berasingan).
 
 ## 9. Risiko
 

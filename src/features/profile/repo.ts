@@ -378,3 +378,7 @@ export async function listApprovedUserIds(db: D1Database): Promise<string[]> {
   const { results } = await db.prepare("SELECT user_id FROM profiles WHERE status = 'approved'").all<{ user_id: string }>()
   return results.map((r) => r.user_id)
 }
+
+// Telefon disimpan semasa checkout bayaran (ToyyibPay wajibkan billPhone).
+export const setPhone = (db: D1Database, userId: string, phone: string, now: number) =>
+  db.prepare('UPDATE profiles SET phone = ?, updated_at = ? WHERE user_id = ?').bind(phone, now, userId).run()

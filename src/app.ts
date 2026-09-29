@@ -11,6 +11,7 @@ import { dashboardRoutes } from './features/dashboard'
 import { departmentsRoutes } from './features/departments'
 import { membersRoutes, type MembersDeps } from './features/members'
 import { notificationsRoutes } from './features/notifications'
+import { gatewaysFor, paymentsRoutes, type PaymentsDeps } from './features/payments'
 import { postsRoutes } from './features/posts'
 import { profileRoutes, requireApproved, requireVerified } from './features/profile'
 import { registrationsRoutes } from './features/registrations'
@@ -24,9 +25,9 @@ import type { AppEnv } from './shared/types'
 
 // Kebergantungan luaran semua feature (D dalam SOLID): produksi guna
 // pelaksanaan sebenar; ujian menghantar yang palsu melalui createApp(deps).
-export type AppDeps = AuthDeps & TelegramDeps & MembersDeps
+export type AppDeps = AuthDeps & TelegramDeps & MembersDeps & PaymentsDeps
 
-export const defaultDeps: AppDeps = { sendEmail: resendEmail, enqueue, sendTelegram: telegramSend }
+export const defaultDeps: AppDeps = { sendEmail: resendEmail, enqueue, sendTelegram: telegramSend, gateways: gatewaysFor }
 
 export function createApp(deps: AppDeps = defaultDeps) {
   const app = new Hono<AppEnv>()
@@ -55,6 +56,7 @@ export function createApp(deps: AppDeps = defaultDeps) {
   app.route('/', activitiesRoutes(deps))
   app.route('/', registrationsRoutes())
   app.route('/', certificatesRoutes(deps))
+  app.route('/', paymentsRoutes(deps))
 
   app.onError(onError)
   app.notFound(notFound)

@@ -12,6 +12,7 @@
 import { createApp, type AppDeps } from '../app'
 import type { Email } from '../shared/email'
 import type { JobMessage } from '../shared/jobs'
+import { IgnoredEvent, type Gateway, type PaymentStatus } from '../features/payments'
 import { signAccess } from '../shared/jwt'
 import { TEST_SECRETS, testEnv } from './env'
 
@@ -22,7 +23,9 @@ export async function testApp(vars: Record<string, string> = {}) {
     sendEmail: async (_config, email) => void sent.emails.push(email),
     enqueue: async (_env, message) => void sent.jobs.push(message),
     sendTelegram: async (_config, chatId, text) => void sent.telegram.push({ chatId, text }),
+    gateways: () => gateways,
   }
+  const gateways = { stripe: fakeGateway('stripe'), toyyibpay: fakeGateway('toyyibpay'), 'toyyibpay-activity': fakeGateway('toyyibpay') }
   const app = createApp(deps)
 
   // Had kadar dimatikan - ujian menghantar banyak permintaan dari satu "IP".
@@ -50,7 +53,7 @@ export async function testApp(vars: Record<string, string> = {}) {
   // Satu baris sebagai rekod longgar (NoInfer: jangan simpulkan jenis dari expect()).
   const row = (sql: string, ...params: unknown[]): Promise<NoInfer<Record<string, unknown>> | null> => env.DB.prepare(sql).bind(...params).first()
 
-  return { env, sent, request, body, row, db: env.DB, dispose: t.dispose }
+  return { env, sent, gateways, request, body, row, db: env.DB, dispose: t.dispose }
 }
 
 export type Harness = Awaited<ReturnType<typeof testApp>>
@@ -91,3 +94,31 @@ export async function tokenFor(userId: string): Promise<string> {
 
 export const updatedAtOf = async (h: Harness, userId: string): Promise<number> =>
   (await h.db.prepare('SELECT updated_at FROM profiles WHERE user_id = ?').bind(userId).first<{ updated_at: number }>())!.updated_at
+
+// Gateway palsu yang boleh dikawal. Body webhook ujian: {"ref": "...", "status": "succeeded" | "failed" | "ignored" | "bad"}.
+export function fakeGateway(name: string) {
+  let n = 0
+  const g = {
+    name,
+    enabled: true,
+    failCreate: false,
+    created: [] as { amountCents: number; metadata: Record<string, string> }[],
+    statuses: new Map<string, PaymentStatus>(),
+    async createPayment(p: { amountCents: number; metadata: Record<string, string> }) {
+      if (g.failCreate) throw new Error('gateway turun')
+      g.created.push(p)
+      const ref = `${name}-${++n}-${crypto.randomUUID().slice(0, 8)}`
+      return name === 'stripe' ? { gatewayRef: ref, clientSecret: `${ref}_secret`, rawResponse: '{}' } : { gatewayRef: ref, redirectUrl: `https://pay.test/${ref}`, rawResponse: '[]' }
+    },
+    async verifyWebhook(payload: string) {
+      const b = JSON.parse(payload) as { ref: string; status: string }
+      if (b.status === 'ignored') throw new IgnoredEvent()
+      if (b.status === 'bad') throw new Error('tandatangan tidak padan')
+      return { gatewayRef: b.ref, status: b.status as 'succeeded' | 'failed', paidAt: Date.UTC(2026, 8, 1) }
+    },
+    async checkStatus(ref: string) {
+      return g.statuses.get(ref) ?? 'pending'
+    },
+  }
+  return g satisfies Gateway
+}

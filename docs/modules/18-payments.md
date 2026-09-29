@@ -49,15 +49,18 @@ ke dalam setiap bil yang masih hidup.
 
 ```
 features/payments/
-  index.ts  routes.ts  service.ts  repo.ts  schema.ts  dto.ts  jobs.ts
-  gateways/
-    gateway.ts      interface Gateway + ralat NotConfigured / IgnoredEvent
-    stripe.ts       fetch + HMAC crypto.subtle
-    toyyibpay.ts    fetch; satu kelas, dua instance
-    registry.ts     { stripe, toyyibpay, 'toyyibpay-activity' } daripada env
-    contract.test.ts  suite yang sama dijalankan ke atas setiap gateway (L)
-  receipts/         pdf-lib: derma, yuran pendaftaran, yuran aktiviti
+  index.ts  routes.ts  service.ts  repo.ts  jobs.ts
+  gateways.ts       interface Gateway, NotConfigured/IgnoredEvent, Stripe (fetch + HMAC
+                    crypto.subtle), ToyyibPay (fetch; satu kilang, dua instance), gatewaysFor()
+  gateways.test.ts  kontrak kedua-dua gateway (fetch disimulasi)
+  receipt.ts        resit PDF (derma, yuran) + emel resit (receiptmail)
+  logo.png.txt      crest kelab (base64 - Worker tiada fs)
+shared/pdf.ts       semantik fpdf di atas pdf-lib (dikongsi dengan certificates)
 ```
+
+Gateway disuntik melalui `AppDeps.gateways(config)`; ujian guna `fakeGateway`
+(`src/test/app.ts`). Job cron membina gateway sebenar sendiri; fungsi dalaman
+(`runReconcile`, `runRegistrationSweep`) menerima gateway untuk diuji.
 
 ## Kontrak `Gateway` (satu-satunya interface dengan >1 pelaksanaan)
 
@@ -66,7 +69,7 @@ interface Gateway {
   name: string
   enabled(): boolean
   createPayment(p: { amountCents, currency, metadata }): Promise<{ gatewayRef, clientSecret?, redirectUrl?, rawResponse? }>
-  verifyWebhook(req: Request): Promise<{ gatewayRef, status: 'succeeded' | 'failed', paidAt }>  // throw Ignored untuk event tak berkaitan
+  verifyWebhook(payload: string, headers: Headers): Promise<{ gatewayRef, status: 'succeeded' | 'failed', paidAt }>  // throw IgnoredEvent untuk event tak berkaitan
   checkStatus(gatewayRef): Promise<'pending' | 'succeeded' | 'failed'>
 }
 ```
@@ -97,8 +100,17 @@ Tambah gateway = satu fail + satu entri registry; tiada service berubah.
   (lapisan `protected`). Pengecualian staff → tiada bil.
   `outstandingRegistrationFee()` ialah **satu** fungsi dikongsi dengan
   [dashboard](./14-dashboard.md).
-- **Yuran aktiviti**: amaun = `activities.fee_cents` disnapshot pada
-  pendaftaran; + `GATEWAY_CHARGE_CENTS`.
+- **Yuran aktiviti**: amaun bil = `activities.fee_cents` semasa checkout,
+  disnapshot ke `fee_cents_paid`. `GATEWAY_CHARGE_CENTS` **tidak** ditambah pada
+  bil - hanya dipaparkan sebagai pecahan pada resit dan `/payment-config`.
+- **Checkout ToyyibPay** wajib `billPhone`: telefon profil yang sah dipakai;
+  kosong/cacat → 400 `code: phone_required`, nombor baharu disimpan ke profil.
+- **Gateway gagal selepas baris pending ditulis** (yuran pendaftaran, L29) →
+  tiada bil wujud, baris ditanda `failed`. Bil dicipta tetapi pautan gagal →
+  log `mismatch` membawa kedua-dua belah untuk pautan manual.
+- **Bayar selepas dibatal sweep** (yuran aktiviti) → `cancelled` + `paid`
+  sengaja kelihatan, log `mismatch`, semakan manual.
+- `/webhooks/:gateway` menerima mana-mana nama dalam registry (pariti).
 - **Return page**: `*_RETURN_URL` diset → 302 dengan query string ToyyibPay
   dikekalkan; kosong → HTML makluman. **Bukan** sumber status.
 - **Resit**: PDF dijana setiap permintaan (tiada R2); sendiri sahaja; hanya
@@ -112,10 +124,10 @@ Tambah gateway = satu fail + satu entri registry; tiada service berubah.
 | Job | Jadual | Tindakan |
 |---|---|---|
 | `reconcile` | 30m | semua baris `pending` → `checkStatus` → betulkan DB ikut gateway |
-| `activitysweep` | 15m | pendaftaran aktiviti `pending_payment` lapuk → semak gateway → `cancelled` (lepaskan slot) |
+| `activitysweep` | 15m | pendaftaran `payment_status = 'pending'`: tiada bil >45 min, ada bil >24 j → `cancelled` (lepaskan slot). **Tiada** semakan gateway (pariti) - bayaran lewat ditangkap webhook sebagai cancelled+paid |
 | `registrationsweep` | 15m | `registration_payments` `pending` lebih tua daripada `REGISTRATION_BILL_EXPIRY_MINUTES` → semak gateway → `failed` |
 
-Setiap sweep **semak gateway dahulu** - bayaran lewat tidak hilang senyap.
+`registrationsweep` dan pembatalan admin **semak gateway dahulu** - bayaran lewat tidak hilang senyap.
 Semua idempoten dengan guard lajur; dua cron serentak = hasil sama.
 
 ## Cloudflare
@@ -126,8 +138,11 @@ Semua idempoten dengan guard lajur; dua cron serentak = hasil sama.
 - Poll ToyyibPay (15 s timeout) dalam webhook: `AbortSignal.timeout(15000)`.
 - Cron: `*/15 * * * *` (dua sweep), `*/30 * * * *` (reconcile) - kongsi
   handler `scheduled` ([shared](./00-shared.md)).
-- Reconcile satu invokasi dihadkan N baris (had subrequest); baki disambung
-  pusingan seterusnya.
+- Reconcile satu invokasi: 50 baris setiap jenis (marc_go 200) - had
+  subrequest/D1; baki disambung pusingan seterusnya.
+- `payment_logs.user_id` diisi melalui subquery `users` - pengguna dipadam
+  tidak menggagalkan log.
+- Bundle Worker selepas Fasa 7: 479 KiB gzip.
 - Resit PDF: `pdf-lib` (R11). Tarikh resit derma = masa gateway (`paidAt`),
   bukan masa webhook; jangan cetak 1970 (L27a).
 
@@ -137,7 +152,6 @@ Semua idempoten dengan guard lajur; dua cron serentak = hasil sama.
 - Webhook sama dihantar dua kali → satu peralihan, satu emel resit.
 - Webhook ToyyibPay dengan `status_id=1` palsu tetapi poll berkata unpaid →
   kekal `pending`.
-- Gateway gagal selepas baris `pending` ditulis → baris kekal, reconcile
-  membetulkannya kemudian.
+- Gateway gagal selepas baris `pending` ditulis → baris `failed`, tiada bil.
 - Akaun `tester` → 403 pada ketiga-tiga checkout.
 - Yuran tertunggak `/me/payments` = `/dashboard`.

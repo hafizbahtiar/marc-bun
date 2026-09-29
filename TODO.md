@@ -11,7 +11,7 @@ dokumennya - `ARCHITECTURE.md`/`DATABASE.md` di sana sudah tertinggal.
 
 Status: **Fasa 3 siap; Fasa 0 hampir siap** (lokal). Scaffold features-first, semua
 binding, `shared/` asas, arahan, CI, skema D1; `bun run check` hijau. Belum: remote git,
-rahsia prod (`.env`), deploy pertama. Seterusnya: Fasa 7 (`payments`).
+rahsia prod (`.env`), deploy pertama. Seterusnya: Fasa 8 (`audit`, `legacy-import`).
 
 Setiap fasa selesai bila: respons padan `marc_go` (status + bentuk JSON +
 mesej), tiada medan PII baharu, `bun run check` hijau, dan **dokumen
@@ -167,11 +167,17 @@ WinAnsi dengan pengesahan medan), verify awam medan-terhad, templat
 (PATCH/publish CAS). Notifikasi `certificate_ready` satu mesej, sijil
 dipautkan oleh consumer.
 
-## Fasa 7 - `payments`
+## Fasa 7 - `payments` ✅
 
-- [ ] `docs/modules/18-payments.md`.
-- [ ] `Gateway` + suite ujian kontrak dijalankan ke atas setiap pelaksanaan.
-- [ ] Job `reconcile`, `activitysweep`, `registrationsweep`.
+Siap 2026-09-29. Gateway Stripe + ToyyibPay (fetch, tiada SDK; HMAC Stripe
+dengan crypto.subtle) + ujian kontrak; derma, yuran pendaftaran (L29: baris
+dahulu), yuran aktiviti, webhook (log mentah dahulu, idempoten), resit PDF +
+emel, `/me/payments`, `/admin/payments`, reconcile manual + cron, dua sweep,
+batal bil oleh admin. `shared/pdf.ts` dikongsi dengan sijil.
+
+Belum disahkan terhadap gateway sebenar: createBill/getBillTransactions
+ToyyibPay dan PaymentIntent Stripe hanya diuji dengan fetch disimulasi -
+uji sekali dengan sandbox (`dev.toyyibpay.com`, kunci `sk_test`) sebelum cutover.
 
 ## Fasa 8 - `audit`, `legacy-import`
 

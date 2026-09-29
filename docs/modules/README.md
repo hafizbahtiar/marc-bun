@@ -76,7 +76,7 @@ kongsi, bukan feature.
 | telegram | profile |
 | bans | profile, members |
 | members | auth, profile, departments, uploads |
-| payments | profile, registrations, activities |
+| payments | profile, registrations *(activities/profiles/users dibaca melalui cross-read)* |
 | activities | profile |
 | registrations | profile *(aktiviti/sesi dibaca melalui JOIN FK - cross-read)* |
 | certificates | activities, members, profile |

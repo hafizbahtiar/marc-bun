@@ -1,6 +1,6 @@
 // API awam features/profile. SATU-SATUNYA penulis `profiles` - feature lain
 // memanggil operasi di sini (kebanyakannya statement untuk db.batch mereka).
-export { requireApproved, requireMinRole, requireVerified } from './middleware'
+export { blockTesterWrites, requireApproved, requireMinRole, requireVerified } from './middleware'
 export {
   atLeastRole,
   banStmt,
@@ -24,6 +24,7 @@ export {
   PENDING_DELETION_REQUEST_SQL,
   setActiveStmt,
   setDepartmentStmt,
+  setPhone,
   setRoleStmt,
   setStatusStmt,
   setTelegram,

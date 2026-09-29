@@ -124,3 +124,28 @@ export const deleteAttendanceStmt = (db: D1Database, id: string) => db.prepare('
 // cross-read: profiles (paparan skrin pengimbas)
 export const memberOf = (db: D1Database, userId: string) =>
   db.prepare('SELECT display_name, member_id FROM profiles WHERE user_id = ?').bind(userId).first<{ display_name: string | null; member_id: string | null }>()
+
+// ---- lajur bayaran (dipanggil oleh features/payments) ----
+
+// fee_cents_paid = snapshot amaun SEBENAR dihantar ke gateway (resit tidak
+// berubah bila yuran aktiviti ditukar kemudian).
+export const setPaymentRefStmt = (db: D1Database, id: string, ref: string, feeCentsPaid: number) =>
+  db.prepare('UPDATE activity_registrations SET payment_ref = ?, fee_cents_paid = ? WHERE id = ? RETURNING id').bind(ref, feeCentsPaid, id)
+
+// 'paid' terminal = replay no-op. SENGAJA tiada guard status <> 'cancelled':
+// bayar-selepas-dibatal mesti kelihatan (cancelled+paid), bukan hilang senyap.
+export const markPaidByRef = (db: D1Database, ref: string) =>
+  db.prepare("UPDATE activity_registrations SET payment_status = 'paid' WHERE payment_ref = ? AND payment_status <> 'paid' RETURNING *").bind(ref).first<Registration>()
+
+// activitysweep: tidak pernah checkout (tiada bil) → cutoff pendek; ada bil →
+// cutoff panjang (webhook lewat FPX). `status <> 'cancelled'` = idempoten.
+export async function cancelStaleUnpaid(db: D1Database, withBill: boolean, cutoff: number, now: number) {
+  const { meta } = await db
+    .prepare(
+      `UPDATE activity_registrations SET status = 'cancelled', cancelled_at = ?
+       WHERE payment_status = 'pending' AND status <> 'cancelled' AND payment_ref IS ${withBill ? 'NOT ' : ''}NULL AND registered_at < ?`,
+    )
+    .bind(now, cutoff)
+    .run()
+  return meta.changes
+}

@@ -2,14 +2,15 @@
 import { app } from './app'
 import { lifecycle } from './features/activities'
 import { notify } from './features/notifications'
+import { activitySweep, reconcile, registrationSweep } from './features/payments'
 import { reaper } from './features/uploads'
 import type { CronJob, JobHandler, JobType } from './shared/jobs'
 
 // Jadual mesti sama dengan `triggers.crons` dalam wrangler.jsonc.
 // Tambah job = satu entri: '*/15 * * * *': [uploads.reaper, payments.activitySweep, …]
 export const cronJobs: Record<string, CronJob[]> = {
-  '*/15 * * * *': [reaper],
-  '*/30 * * * *': [],
+  '*/15 * * * *': [reaper, activitySweep, registrationSweep],
+  '*/30 * * * *': [reconcile],
   '0 * * * *': [lifecycle],
   '0 19 * * *': [],
 }
