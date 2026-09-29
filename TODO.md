@@ -209,12 +209,15 @@ kunci bayaran live), had kadar + potong 16 KB pada webhook, Telegram
 gagal-tertutup, `undici` (dev) dipaksa ≥7.29.1, pautan claim ke frontend.
 
 Terbuka / diterima:
-- [ ] **Upload R2 tanpa had saiz** pada URL presign (ahli disahkan boleh muat
-      naik fail besar; reaper membuang selepas 6 j). Tambah peraturan kitaran
-      hayat bucket R2 untuk `posts/` (cth padam > 1 hari) sebagai jaring.
-- Had kadar per-lokasi Cloudflare (bukan global) untuk `RL_AUTH` - diterima (R5).
-- Log invokasi Workers merekod URL penuh (token verify-email sekali-guna) - diterima.
-- `/payment-status` awam mendedahkan status ID bayaran yang diteka - pariti, diterima.
+- [x] **Upload R2 tanpa had saiz** pada URL presign → reaper `head` setiap upload
+      tertunggak sekali (umur 10-25 min) dan membuang objek > 5 MB (~40 min, bukan
+      6 j). Kitaran hayat R2 pada `posts/` DITOLAK: gambar yang sudah dilampir
+      (marc_go + marc_bun, bucket dikongsi) juga di bawah prefix itu.
+
+Diterima pemilik (2026-09-29):
+- Had kadar per-lokasi Cloudflare (bukan global) untuk `RL_AUTH` (R5).
+- Log invokasi Workers merekod URL penuh (token verify-email sekali-guna).
+- `/payment-status` awam mendedahkan status ID bayaran yang diteka (pariti).
 
 ## Skrip data (susulan)
 

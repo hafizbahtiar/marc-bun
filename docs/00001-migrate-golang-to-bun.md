@@ -471,6 +471,7 @@ Setiap satu mesti disemak dengan pemilik produk sebelum cutover.
     - Webhook Telegram **gagal-tertutup**: rahsia kosong → 401 (marc_go: terima semua).
     - Pautan emel tuntutan legacy → `CLAIM_ACCOUNT_URL` (frontend); marc_go
       menghala ke backend yang tiada laluan `/claim-account`.
+    - Upload tertunggak > 5 MB dibuang oleh reaper selepas ~40 min (marc_go: 6 j).
 
 ## 9. Risiko
 

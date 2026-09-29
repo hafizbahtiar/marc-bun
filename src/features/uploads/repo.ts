@@ -76,6 +76,21 @@ export async function sweepAbandoned(db: D1Database, cutoff: number, limit: numb
   return queued?.meta.changes ?? 0
 }
 
+// Upload tertunggak dalam tetingkap [from, to) - untuk semakan saiz reaper.
+export async function pendingBetween(db: D1Database, from: number, to: number, limit: number): Promise<string[]> {
+  const { results } = await db
+    .prepare('SELECT r2_key FROM pending_uploads WHERE created_at >= ? AND created_at < ? ORDER BY created_at LIMIT ?')
+    .bind(from, to, limit)
+    .all<{ r2_key: string }>()
+  return results.map((r) => r.r2_key)
+}
+
+// Gilir padam + keluarkan dari pending, satu batch.
+export const discardPendingStmts = (db: D1Database, key: string, reason: string) => [
+  enqueueDeleteStmt(db, key, reason),
+  db.prepare('DELETE FROM pending_uploads WHERE r2_key = ?').bind(key),
+]
+
 export async function dueDeletes(db: D1Database, now: number, limit: number) {
   const { results } = await db
     .prepare('SELECT r2_key, attempts FROM deleted_uploads WHERE deleted_at IS NULL AND next_attempt_at <= ? ORDER BY next_attempt_at LIMIT ?')

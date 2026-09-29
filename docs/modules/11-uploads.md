@@ -70,3 +70,11 @@ Pulang URL PUT + `r2_key`. Klien kemudian melampirkan `r2_key` pada
 - Lampir `r2_key` milik pengguna lain → 400.
 - Dua `signedUrl(key)` berturutan → rentetan sama.
 - Reaper: `R2.delete` gagal → baris kekal dengan `attempts + 1`.
+
+## Semakan saiz tertunggak (keselamatan, 2026-09-29)
+
+URL presign PUT tidak mengehadkan saiz. Reaper (15 min) `head` setiap upload
+tertunggak berumur 10-25 min (URL luput dalam 5 min) dan menggilir objek
+> 5 MB ke `deleted_uploads` (`upload_oversized`) - dipadam pada larian
+berikutnya. Kitaran hayat bucket R2 pada `posts/` **tidak** boleh dipakai:
+gambar post/avatar yang sudah dilampir berada di bawah prefix yang sama.

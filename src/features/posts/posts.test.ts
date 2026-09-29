@@ -1,12 +1,13 @@
 // "Ujian wajib" docs/modules/12-posts.md + 11-uploads.md, melalui HTTP + D1/R2 sebenar.
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { ROLE, seedMember, testApp, tokenFor, type Harness } from '../../test/app'
+import { reaper } from '../uploads'
 
 let h: Harness
 const quiet = { log: console.log, error: console.error }
 beforeAll(async () => {
-  console.log = () => {}
-  console.error = () => {}
+  console.log = () => { }
+  console.error = () => { }
   h = await testApp()
 }, 60_000)
 afterAll(async () => {
@@ -168,6 +169,31 @@ describe('komen', () => {
 })
 
 describe('uploads', () => {
+  test('reaper: upload > 5 MB yang belum dilampir dibuang selepas ~10 min; kecil & baharu kekal', async () => {
+    const u = await member()
+    const now = Date.now()
+    const put = async (bytes: number, ageMin: number) => {
+      const key = `posts/${crypto.randomUUID()}`
+      await h.env.BUCKET.put(key, new Uint8Array(bytes))
+      await h.db.prepare('INSERT INTO pending_uploads (r2_key, user_id, created_at) VALUES (?, ?, ?)').bind(key, u.id, now - ageMin * 60_000).run()
+      return key
+    }
+    const big = await put(5 * 1024 * 1024 + 1, 12)
+    const small = await put(1024, 12)
+    const fresh = await put(5 * 1024 * 1024 + 1, 2) // URL mungkin masih sah - belum disemak
+    // Larian 1: yang besar & cukup tua digilir (keluar dari pending); kecil & baharu tidak disentuh.
+    await reaper(h.env, now)
+    expect(await h.row('SELECT 1 AS x FROM pending_uploads WHERE r2_key = ?', big)).toBeNull()
+    expect(await h.row('SELECT reason FROM deleted_uploads WHERE r2_key = ?', big)).toEqual({ reason: 'upload_oversized' })
+    expect(await h.row('SELECT 1 AS x FROM deleted_uploads WHERE r2_key IN (?, ?)', small, fresh)).toBeNull()
+    // Larian 2 (15 min kemudian): objek dipadam dari R2; yang "baharu" kini dalam tetingkap.
+    await reaper(h.env, now + 15 * 60_000)
+    expect(await h.env.BUCKET.head(big)).toBeNull()
+    expect(await h.row('SELECT deleted_at IS NOT NULL AS done FROM deleted_uploads WHERE r2_key = ?', big)).toEqual({ done: 1 })
+    expect(await h.row('SELECT reason FROM deleted_uploads WHERE r2_key = ?', fresh)).toEqual({ reason: 'upload_oversized' })
+    expect((await h.env.BUCKET.head(small))?.size).toBe(1024)
+  })
+
   test('presign: R2 belum dikonfigurasi = 503; jenis tidak disokong = 400; sah = URL + pending', async () => {
     const u = await member()
     const presign = (json: unknown, env = {}) => h.request('/uploads/presign', { method: 'POST', token: u.token, json }, env)
