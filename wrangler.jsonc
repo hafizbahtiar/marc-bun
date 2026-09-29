@@ -57,7 +57,7 @@
   // Bukan rahsia. Rahsia: .env → `bun run secrets:push` (prod) / .env.dev (lokal).
   "vars": {
     "ENVIRONMENT": "production",
-    "PUBLIC_BASE_URL": "",
+    "PUBLIC_BASE_URL": "https://marc-bun.hafizbahtiar98.workers.dev",
     "EMAIL_VERIFY_URL": "https://marc.hafizbahtiar.com/sahkan-emel",
     "PASSWORD_RESET_URL": "https://marc.hafizbahtiar.com/reset-kata-laluan",
     "CERTIFICATE_VERIFY_URL": "https://marc.hafizbahtiar.com/sahkan-sijil",

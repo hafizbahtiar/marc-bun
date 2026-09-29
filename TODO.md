@@ -85,11 +85,13 @@ Sudah disahkan 2026-09-26 (wrangler 4.141, Bun 1.4.2) - ujian dalam
       tidak dipakai.
 - [x] Isi `.env` (prod, dari Railway production) + `.env.dev` (staging, hanya
       rahsia yang berbeza daripada prod).
-- [ ] `bun run deploy` pertama (Worker `marc-bun` belum wujud) →
-      `bun run secrets:push` → `bun run secrets:check`.
-- [ ] Isi `vars` bukan-rahsia dalam `wrangler.jsonc` (EMAIL_FROM, URL frontend,
-      ToyyibPay, Stripe publishable, OneSignal app id, R2_ACCOUNT_ID, …);
-      `PUBLIC_BASE_URL` = domain marc_go semasa cutover (bil ToyyibPay hidup).
+- [x] Deploy pertama (2026-09-29): 15 rahsia (`secrets:push` mencipta Worker),
+      `bun run deploy`, `https://marc-bun.hafizbahtiar98.workers.dev`, 4 cron aktif.
+      Smoke test produksi lulus (healthz, 401 berlapis, D1, redirect return).
+- [x] `vars` diisi dari Railway production; EMAIL_FROM, TOYYIBPAY_CATEGORY_CODE,
+      R2_ACCOUNT_ID, STRIPE_PUBLISHABLE_KEY, ONESIGNAL_APP_ID dipindah ke secret.
+- [ ] **Cutover**: `PUBLIC_BASE_URL` → `https://api.marc.hafizbahtiar.com` +
+      custom domain Worker (bil ToyyibPay hidup membakar domain ini).
 
 Siap (rujukan): `git init`, `.gitignore` (`backups/`, `.env*`),
 `.env.example` + `.env.dev` lokal + `bunfig.toml` (`env = false`), `wrangler.jsonc` (D1/KV/R2/Queue+DLQ/17 ratelimit/4 cron/
