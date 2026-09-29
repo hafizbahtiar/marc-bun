@@ -44,7 +44,8 @@ Semua `verified`.
 - **Komen kedalaman ≤2**: balas komen tahap-2 → dilekatkan pada induk
   tahap-1 asalnya (flatten), bukan tahap 3.
 - **Like idempoten**: like kali kedua tiada baris baharu → **tiada
-  notifikasi**. Unlike tiada baris = 204.
+  notifikasi**. Unlike tiada baris = 204. Like pada post/komen yang dipadam
+  lembut → 404 (syarat `deleted_at IS NULL` dalam INSERT…SELECT).
 - Notifikasi (`post_like`, `post_comment`, `comment_like`) kepada pemilik,
   **bukan** kepada diri sendiri; best-effort selepas komit.
 - Senarai: keyset `(created_at, id)`, kursor legap `"<masa>|<uuid>"`,

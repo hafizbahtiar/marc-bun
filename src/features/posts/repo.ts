@@ -108,7 +108,11 @@ export async function commentLikeState(db: D1Database, commentIds: string[], vie
 // ---- like (ON CONFLICT DO NOTHING RETURNING = baris baharu sahaja → notifikasi sekali) ----
 
 export async function likePost(db: D1Database, postId: string, userId: string, now: number): Promise<boolean> {
-  const row = await db.prepare('INSERT INTO post_likes (post_id, user_id, created_at) VALUES (?, ?, ?) ON CONFLICT DO NOTHING RETURNING post_id').bind(postId, userId, now).first()
+  // Hanya post yang belum dipadam (marc_go: FK sahaja - post dipadam lembut diterima).
+  const row = await db
+    .prepare('INSERT INTO post_likes (post_id, user_id, created_at) SELECT id, ?, ? FROM posts WHERE id = ? AND deleted_at IS NULL ON CONFLICT DO NOTHING RETURNING post_id')
+    .bind(userId, now, postId)
+    .first()
   return row !== null
 }
 
@@ -117,7 +121,10 @@ export async function unlikePost(db: D1Database, postId: string, userId: string)
 }
 
 export async function likeComment(db: D1Database, commentId: string, userId: string, now: number): Promise<boolean> {
-  const row = await db.prepare('INSERT INTO comment_likes (comment_id, user_id, created_at) VALUES (?, ?, ?) ON CONFLICT DO NOTHING RETURNING comment_id').bind(commentId, userId, now).first()
+  const row = await db
+    .prepare('INSERT INTO comment_likes (comment_id, user_id, created_at) SELECT id, ?, ? FROM comments WHERE id = ? AND deleted_at IS NULL ON CONFLICT DO NOTHING RETURNING comment_id')
+    .bind(userId, now, commentId)
+    .first()
   return row !== null
 }
 

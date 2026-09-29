@@ -47,6 +47,14 @@ describe('GET /audit-logs', () => {
   })
 })
 
+describe('pengepala keselamatan', () => {
+  test('nosniff + X-Frame-Options + HSTS pada setiap respons; tiada CORP (klien web merentas origin)', async () => {
+    const res = await h.request('/healthz')
+    expect([res.headers.get('X-Content-Type-Options'), res.headers.get('X-Frame-Options'), res.headers.get('Cross-Origin-Resource-Policy')]).toEqual(['nosniff', 'SAMEORIGIN', null])
+    expect(res.headers.get('Strict-Transport-Security')).toContain('max-age=')
+  })
+})
+
 describe('retention', () => {
   test('2,500 baris lama dipadam merentas kepingan; baharu kekal; PII diredaksi; 0 = mati', async () => {
     const now = Date.now()

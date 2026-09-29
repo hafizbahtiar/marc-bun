@@ -20,6 +20,7 @@ export type LegacyDeps = { sendEmail: SendEmail }
 export type LegacyCtx = { env: CloudflareBindings; config: Config; deps: LegacyDeps; now: number; actor: Actor; userId: string; waitUntil(p: Promise<unknown>): void }
 
 const MAX_BYTES = 1 << 20
+const redacted = (v: string) => (v ? '[disunting]' : '')
 const CLAIM_TTL = 3600_000
 
 export async function requireSuperAdmin(ctx: { env: CloudflareBindings; userId: string }) {
@@ -208,9 +209,11 @@ export async function importBatch(ctx: LegacyCtx, batchId: string) {
           phone: r.phone,
           department_code: r.dept,
           position: r.position,
-          emergency_contact_name: r.emergency_name,
-          emergency_contact_phone: r.emergency_phone,
-          health_notes: r.health_notes,
+          // Medan peringkat superadmin (T3) TIDAK disalin ke audit: /audit-logs
+          // dibaca oleh semua pengurusan. Hanya penanda bahawa ia diisi.
+          emergency_contact_name: redacted(r.emergency_name),
+          emergency_contact_phone: redacted(r.emergency_phone),
+          health_notes: redacted(r.health_notes),
           staff_id: r.legacy_staff_id,
           member_id: r.member_id,
           is_active: r.legacy_status,

@@ -18,9 +18,9 @@ afterAll(async () => {
   await h.dispose()
 })
 
-type R = { bil: number; staff: string; member: string; name?: string; email: string; dept?: string; status?: string }
+type R = { bil: number; staff: string; member: string; name?: string; email: string; dept?: string; status?: string; health?: string }
 const line = (r: R) =>
-  [r.bil, r.status ?? 'Aktif', 'LAMA', 'Tiada', 'MARC-', r.staff, '/', '2026', '-', r.bil, r.member, r.name ?? `Nama ${r.bil}`, '0123456789', r.email, r.dept ?? 'BPI', '', 'Pegawai', '', '', '', '', '', '', ''].join(',')
+  [r.bil, r.status ?? 'Aktif', 'LAMA', 'Tiada', 'MARC-', r.staff, '/', '2026', '-', r.bil, r.member, r.name ?? `Nama ${r.bil}`, '0123456789', r.email, r.dept ?? 'BPI', '', 'Pegawai', '', '', r.health ?? '', '', '', '', ''].join(',')
 const csv = (rows: R[]) => ['SENARAI,,,', HEADER_NAMES.join(','), ...rows.map(line)].join('\n')
 
 async function dryRun(rows: R[], token = sa) {
@@ -104,7 +104,7 @@ describe('import & tuntutan', () => {
     const u = uniq()
     const b = await h.body(
       await dryRun([
-        { bil: 1, staff: `G${u}`, member: `R1${u}`, email: acct.email, name: 'Dari Eksport', status: 'Tidak Aktif' },
+        { bil: 1, staff: `G${u}`, member: `R1${u}`, email: acct.email, name: 'Dari Eksport', status: 'Tidak Aktif', health: 'Asma kronik' },
         { bil: 2, staff: `H${u}`, member: `R2${u}`, email: `h${u}@x.my` },
       ]),
     )
@@ -119,6 +119,10 @@ describe('import & tuntutan', () => {
     })
     expect(await h.body(await imp())).toMatchObject({ imported: 0 })
     expect((await h.row("SELECT COUNT(*) AS n FROM audit_logs WHERE entity_type = 'profile' AND new_values LIKE ?", `%G${u}%`))!.n).toBe(1)
+    // Medan T3 (superadmin) tidak bocor ke /audit-logs (dibaca semua pengurusan).
+    const audit = JSON.parse((await h.row("SELECT new_values FROM audit_logs WHERE entity_type = 'profile' AND new_values LIKE ?", `%G${u}%`))!.new_values as string)
+    expect(audit.health_notes).toBe('[disunting]')
+    expect(await h.row('SELECT health_notes FROM profiles WHERE user_id = ?', acct.id)).toEqual({ health_notes: 'Asma kronik' })
     expect((await rowsOf(b.id as string)).map((r) => r.status)).toEqual(['imported', 'valid'])
   })
 

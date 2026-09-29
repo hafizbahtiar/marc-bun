@@ -36,6 +36,9 @@ Tapisan: `entity_type`, `entity_id`, `action`, `actor_id`. Keyset:
   Perbandingan lajur guna `IS NOT` supaya NULL = NULL.
 - Pelaku boleh NULL (tindakan sistem/cron). Snapshot nama/peranan pelaku
   disimpan dalam baris - tidak bergantung pada profil yang mungkin dipadam.
+- **Tiada medan peringkat superadmin (T3) dalam audit**: `/audit-logs` dibaca oleh
+  semua pengurusan, jadi `health_notes` & kenalan kecemasan direkod sebagai
+  `[disunting]` (butiran ahli: T3 untuk superadmin sahaja).
 - Jenis entiti = pemalar dalam `shared/audit.ts`; tambah entiti = tambah
   pemalar, bukan migrasi.
 

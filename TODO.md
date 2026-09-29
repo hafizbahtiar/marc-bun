@@ -214,6 +214,12 @@ Terbuka / diterima:
       6 j). Kitaran hayat R2 pada `posts/` DITOLAK: gambar yang sudah dilampir
       (marc_go + marc_bun, bucket dikongsi) juga di bawah prefix itu.
 
+Pusingan 2 (2026-09-30), dibaiki: audit legacy tidak lagi menyalin medan T3
+(`[disunting]`), `secureHeaders()` global, like pada post/komen dipadam → 404.
+Terbuka: pendaftaran boleh menempah `staff_id` orang lain (pariti - pengurusan
+betulkan melalui correct-staff-id); polisi kata laluan min 6 (pariti); Actions
+dipin tag bukan SHA; sahkan log invokasi menyunting `Authorization`.
+
 Diterima pemilik (2026-09-29):
 - Had kadar per-lokasi Cloudflare (bukan global) untuk `RL_AUTH` (R5).
 - Log invokasi Workers merekod URL penuh (token verify-email sekali-guna).

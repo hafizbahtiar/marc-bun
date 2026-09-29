@@ -99,6 +99,9 @@ describe('post', () => {
     expect(await h.row('SELECT reason FROM deleted_uploads WHERE r2_key = ?', key)).toEqual({ reason: 'post_deleted' })
     expect(await h.row("SELECT action FROM audit_logs WHERE entity_id = ? AND action = 'delete'", p.id)).toEqual({ action: 'delete' })
     expect((await h.request(`/posts/${p.id}`, { token: u.token })).status).toBe(404)
+    // Like pada post dipadam lembut → 404, tiada baris (marc_go: diterima senyap).
+    expect(await h.body(await h.request(`/posts/${p.id}/like`, { method: 'POST', token: stranger.token }))).toEqual({ error: 'post tidak dijumpai' })
+    expect(await h.row('SELECT 1 AS x FROM post_likes WHERE post_id = ? AND user_id = ?', p.id, stranger.id)).toBeNull()
     expect(await h.body(await h.request(`/posts/${p.id}/comments`, { method: 'POST', token: u.token, json: { content: 'x' } }))).toEqual({ error: 'post tidak dijumpai' })
   })
 
@@ -165,6 +168,7 @@ describe('komen', () => {
     const m = await member({ role: ROLE.manager })
     expect((await h.request(`/comments/${c.id}`, { method: 'DELETE', token: m.token, json: { updated_at: edited.updated_at } })).status).toBe(204)
     expect((await h.body(await h.request(`/posts/${p.id}`, { token: owner.token }))).comment_count).toBe(0)
+    expect(await h.body(await h.request(`/comments/${c.id}/like`, { method: 'POST', token: u.token }))).toEqual({ error: 'comment tidak dijumpai' })
   })
 })
 

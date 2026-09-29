@@ -472,6 +472,12 @@ Setiap satu mesti disemak dengan pemilik produk sebelum cutover.
     - Pautan emel tuntutan legacy → `CLAIM_ACCOUNT_URL` (frontend); marc_go
       menghala ke backend yang tiada laluan `/claim-account`.
     - Upload tertunggak > 5 MB dibuang oleh reaper selepas ~40 min (marc_go: 6 j).
+    - Like post/komen yang dipadam lembut → 404 `post/comment tidak dijumpai`
+      (marc_go: 204, baris sampah disimpan).
+    - Audit import legacy: `health_notes` & kenalan kecemasan disimpan sebagai
+      `[disunting]` (marc_go: nilai penuh, boleh dibaca semua pengurusan).
+    - Pengepala keselamatan global (`nosniff`, `X-Frame-Options: SAMEORIGIN`,
+      HSTS, `Referrer-Policy: no-referrer`) - marc_go tiada.
 
 ## 9. Risiko
 

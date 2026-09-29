@@ -137,19 +137,12 @@ export async function remove(ctx: PostsCtx, id: string, rawUpdatedAt: string) {
   if (!res?.results.length) throw staleWrite('post telah berubah. Muat semula sebelum memadam lagi.')
 }
 
-const isFkError = (err: unknown) => String(err).includes('FOREIGN KEY constraint failed')
 
 export async function like(ctx: PostsCtx, id: string) {
-  let created: boolean
-  try {
-    created = await repo.likePost(ctx.env.DB, id, ctx.userId, ctx.now)
-  } catch (err) {
-    if (isFkError(err)) throw new ApiError(404, 'post tidak dijumpai')
-    throw err
-  }
-  if (!created) return // like berulang: tiada baris baharu = tiada notifikasi
+  const created = await repo.likePost(ctx.env.DB, id, ctx.userId, ctx.now)
   const post = await repo.getPost(ctx.env.DB, id)
-  if (post) notifyOwner(ctx, post.author_id, 'post_like', { postId: id }, { title: 'Post anda disukai', message: 'Seseorang menyukai post anda' })
+  if (!post) throw new ApiError(404, 'post tidak dijumpai') // tidak wujud / dipadam
+  if (created) notifyOwner(ctx, post.author_id, 'post_like', { postId: id }, { title: 'Post anda disukai', message: 'Seseorang menyukai post anda' })
 }
 
 export const unlike = (ctx: PostsCtx, id: string) => repo.unlikePost(ctx.env.DB, id, ctx.userId)
@@ -221,16 +214,10 @@ export async function removeComment(ctx: PostsCtx, id: string, rawUpdatedAt: str
 }
 
 export async function likeComment(ctx: PostsCtx, id: string) {
-  let created: boolean
-  try {
-    created = await repo.likeComment(ctx.env.DB, id, ctx.userId, ctx.now)
-  } catch (err) {
-    if (isFkError(err)) throw new ApiError(404, 'comment tidak dijumpai')
-    throw err
-  }
-  if (!created) return
+  const created = await repo.likeComment(ctx.env.DB, id, ctx.userId, ctx.now)
   const comment = await repo.getComment(ctx.env.DB, id)
-  if (comment) notifyOwner(ctx, comment.author_id, 'comment_like', { postId: comment.post_id, commentId: id }, { title: 'Komen anda disukai', message: 'Seseorang menyukai komen anda' })
+  if (!comment) throw new ApiError(404, 'comment tidak dijumpai') // tidak wujud / dipadam
+  if (created) notifyOwner(ctx, comment.author_id, 'comment_like', { postId: comment.post_id, commentId: id }, { title: 'Komen anda disukai', message: 'Seseorang menyukai komen anda' })
 }
 
 export const unlikeComment = (ctx: PostsCtx, id: string) => repo.unlikeComment(ctx.env.DB, id, ctx.userId)

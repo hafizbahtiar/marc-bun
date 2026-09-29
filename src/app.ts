@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
 import { requestId } from 'hono/request-id'
+import { secureHeaders } from 'hono/secure-headers'
 import { accountLifecycleRoutes } from './features/account-lifecycle'
 import { activitiesRoutes } from './features/activities'
 import { auditRoutes } from './features/audit'
@@ -36,6 +37,9 @@ export function createApp(deps: AppDeps = defaultDeps) {
 
   app.use(requestId({ headerName: 'X-Request-ID' }))
   app.use(logger)
+  // nosniff, X-Frame-Options, HSTS, Referrer-Policy. CORP/COOP dimatikan: klien
+  // web (marc_next/astro) memanggil API ini merentas origin.
+  app.use(secureHeaders({ crossOriginResourcePolicy: false, crossOriginOpenerPolicy: false }))
   // 1 MB seperti marc_go. Gin melaporkan body terlalu besar sebagai ralat bind,
   // jadi pariti = 400 `Data tidak sah`, bukan 413.
   app.use(bodyLimit({ maxSize: 1 << 20, onError: (c) => c.json({ error: INVALID_DATA }, 400) }))
