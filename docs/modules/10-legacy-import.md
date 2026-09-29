@@ -60,7 +60,8 @@ semak konflik, import baris bersih, dan biar ahli yang belum ada akaun
 - **Claim complete**: batch [guna token (guard `consumed_at IS NULL`), cipta
   user, cipta profil, tanda baris] - tiga yang terakhir bersyarat pada token
   INI baru digunakan, jadi tuntutan serentak = tepat satu akaun; yang kalah → 400.
-- Pautan tuntutan dilog hanya di development bila emel belum dikonfigurasi.
+- Pautan tuntutan = `CLAIM_ACCOUNT_URL?token=…` (halaman marc_next); dilog
+  hanya di development bila emel belum dikonfigurasi.
 - Import boleh diulang: setiap baris yang sudah diimport ditanda, jadi
   permintaan yang terputus disambung, bukan diduplikasi.
 - `multipart` dibaca dengan `c.req.parseBody()` (Web `FormData`); badan > 1 MB

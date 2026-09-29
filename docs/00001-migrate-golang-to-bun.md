@@ -465,6 +465,12 @@ Setiap satu mesti disemak dengan pemilik produk sebelum cutover.
     dikonfigurasi (sama seperti 10).
 28. **Import legacy** memproses ~490 akaun sedia ada setiap panggilan (marc_go:
     satu transaksi tanpa had) - panggilan berulang menyambung, tiada pendua.
+29. **Semakan keselamatan 2026-09-29:**
+    - `POST /webhooks/:gateway` kini dihadkan (`RL_PAYMENT_WEBHOOK`; marc_go tiada had).
+    - `payment_logs.raw_payload` dipotong kepada 16 KB (marc_go: sehingga 1 MB).
+    - Webhook Telegram **gagal-tertutup**: rahsia kosong → 401 (marc_go: terima semua).
+    - Pautan emel tuntutan legacy → `CLAIM_ACCOUNT_URL` (frontend); marc_go
+      menghala ke backend yang tiada laluan `/claim-account`.
 
 ## 9. Risiko
 

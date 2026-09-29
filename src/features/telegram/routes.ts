@@ -30,7 +30,8 @@ export function telegramRoutes(deps: TelegramDeps) {
   r.post('/webhooks/telegram', async (c) => {
     const config = getConfig(c.env)
     if (!config.TELEGRAM_BOT_TOKEN) return notFound(c)
-    if (config.TELEGRAM_WEBHOOK_SECRET && !safeEqual(c.req.header('X-Telegram-Bot-Api-Secret-Token') ?? '', config.TELEGRAM_WEBHOOK_SECRET)) {
+    // Gagal-tertutup: tanpa rahsia, sesiapa boleh memalsukan kemas kini bot.
+    if (!config.TELEGRAM_WEBHOOK_SECRET || !safeEqual(c.req.header('X-Telegram-Bot-Api-Secret-Token') ?? '', config.TELEGRAM_WEBHOOK_SECRET)) {
       return c.body(null, 401)
     }
 

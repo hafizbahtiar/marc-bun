@@ -7,8 +7,8 @@ let h: Awaited<ReturnType<typeof testApp>>
 const quiet = { log: console.log, error: console.error }
 const SECRET = 'webhook-rahsia'
 beforeAll(async () => {
-  console.log = () => {}
-  console.error = () => {}
+  console.log = () => { }
+  console.error = () => { }
   h = await testApp({ TELEGRAM_BOT_USERNAME: 'marc_bot', TELEGRAM_BOT_TOKEN: '123:abc', TELEGRAM_WEBHOOK_SECRET: SECRET })
 }, 60_000)
 afterAll(async () => {
@@ -88,6 +88,11 @@ describe('telegram', () => {
   test('bot tidak dikonfigur → laluan 404', async () => {
     const res = await webhook('/start', 1, SECRET, { TELEGRAM_BOT_TOKEN: '' })
     expect([res.status, await res.text()]).toEqual([404, '404 page not found'])
+  })
+
+  test('rahsia webhook kosong → 401 (gagal-tertutup)', async () => {
+    expect((await webhook('/start', 1, '', { TELEGRAM_WEBHOOK_SECRET: '' })).status).toBe(401)
+    expect((await webhook('/start', 1, 'salah')).status).toBe(401)
   })
 
   test('bukan /start / body rosak → 200 senyap', async () => {

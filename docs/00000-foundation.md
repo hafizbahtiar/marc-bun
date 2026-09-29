@@ -126,6 +126,7 @@ Peraturan runtime:
 | `ONESIGNAL_APP_ID`, `ONESIGNAL_API_KEY` | secret/var | Push |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` | secret/var | Bot binding |
 | `PUBLIC_BASE_URL`, `EMAIL_VERIFY_URL`, `PASSWORD_RESET_URL`, `CERTIFICATE_VERIFY_URL`, `REGISTRATION_PAYMENT_RETURN_URL`, `ACTIVITY_PAYMENT_RETURN_URL` | var | Sama seperti `marc_go` |
+| `CLAIM_ACCOUNT_URL` | var | Baharu: halaman tuntutan legacy di frontend (`marc_next /claim-account`). Kosong = `PUBLIC_BASE_URL/claim-account` (pariti, pautan 404) |
 | `CORS_ALLOWED_ORIGINS` | var | Senarai dipisah koma |
 | `AUDIT_PII_RETENTION_DAYS`, `AUDIT_RECORD_RETENTION_DAYS`, `UPLOAD_TOMBSTONE_RETENTION_DAYS`, `PAYMENT_LOG_RETENTION_DAYS` | var | 90 / 365 / 30 / 90 |
 

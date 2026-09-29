@@ -92,6 +92,7 @@ Sudah disahkan 2026-09-26 (wrangler 4.141, Bun 1.4.2) - ujian dalam
       R2_ACCOUNT_ID, STRIPE_PUBLISHABLE_KEY, ONESIGNAL_APP_ID dipindah ke secret.
 - [ ] **Cutover**: `PUBLIC_BASE_URL` → `https://api.marc.hafizbahtiar.com` +
       custom domain Worker (bil ToyyibPay hidup membakar domain ini).
+      `workers_dev` kini `false` - Worker tiada URL awam sehingga itu.
 
 Siap (rujukan): `git init`, `.gitignore` (`backups/`, `.env*`),
 `.env.example` + `.env.dev` lokal + `bunfig.toml` (`env = false`), `wrangler.jsonc` (D1/KV/R2/Queue+DLQ/17 ratelimit/4 cron/
@@ -200,6 +201,20 @@ kira-semula seluruh batch dalam satu statement json_each, tuntutan akaun
 - [ ] Ujian asap: login, feed, daftar aktiviti, satu bayaran ujian, satu
       resit, satu sijil, satu QR pengesahan, satu webhook ToyyibPay lama.
 - [ ] `marc_go` baca-sahaja sehingga stabil.
+
+## Semakan keselamatan (2026-09-29)
+
+Dibaiki: `workers_dev: false` (Worker tidak awam sehingga cutover - D1 kosong +
+kunci bayaran live), had kadar + potong 16 KB pada webhook, Telegram
+gagal-tertutup, `undici` (dev) dipaksa ≥7.29.1, pautan claim ke frontend.
+
+Terbuka / diterima:
+- [ ] **Upload R2 tanpa had saiz** pada URL presign (ahli disahkan boleh muat
+      naik fail besar; reaper membuang selepas 6 j). Tambah peraturan kitaran
+      hayat bucket R2 untuk `posts/` (cth padam > 1 hari) sebagai jaring.
+- Had kadar per-lokasi Cloudflare (bukan global) untuk `RL_AUTH` - diterima (R5).
+- Log invokasi Workers merekod URL penuh (token verify-email sekali-guna) - diterima.
+- `/payment-status` awam mendedahkan status ID bayaran yang diteka - pariti, diterima.
 
 ## Skrip data (susulan)
 

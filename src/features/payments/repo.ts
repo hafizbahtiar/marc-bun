@@ -46,6 +46,10 @@ export type LogEntry = {
   rawPayload?: string
 }
 
+// Payload mentah dipotong: webhook awam tidak boleh memenuhkan D1 (callback
+// sebenar ToyyibPay/Stripe jauh di bawah had ini).
+export const MAX_RAW_PAYLOAD = 16 * 1024
+
 // Kegagalan log tidak pernah menggagalkan aliran bayaran.
 export async function log(db: D1Database, e: LogEntry): Promise<void> {
   await db
@@ -53,7 +57,7 @@ export async function log(db: D1Database, e: LogEntry): Promise<void> {
       `INSERT INTO payment_logs (module, event, status, gateway, gateway_ref, amount_cents, user_id, related_id, message, raw_payload)
        SELECT ?, ?, ?, ?, ?, ?, (SELECT id FROM users WHERE id = ?), ?, ?, ?`,
     )
-    .bind(e.module, e.event, e.status, e.gateway, e.gatewayRef || null, e.amountCents ?? null, e.userId ?? null, e.relatedId ?? null, e.message || null, e.rawPayload || null)
+    .bind(e.module, e.event, e.status, e.gateway, e.gatewayRef || null, e.amountCents ?? null, e.userId ?? null, e.relatedId ?? null, e.message || null, e.rawPayload ? e.rawPayload.slice(0, MAX_RAW_PAYLOAD) : null)
     .run()
     .catch((err) => console.error(JSON.stringify({ level: 'error', msg: 'paymentlog gagal', module: e.module, event: e.event, error: String(err) })))
 }

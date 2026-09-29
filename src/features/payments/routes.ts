@@ -63,7 +63,7 @@ export function paymentsRoutes(deps: PaymentsDeps) {
 
   // Derma: awam + optionalAuth (ahli log masuk dikaitkan user_id).
   r.post('/donations/checkout', rateLimit('RL_DONATION'), optionalAuth, blockTesterWrites, async (c) => c.json(await service.donationCheckout(ctx(c), await parseBody(c, donation))))
-  r.post('/webhooks/:gateway', async (c) => webhookResponse(c, await service.donationWebhook(ctx(c), c.req.param('gateway'), await c.req.text(), c.req.raw.headers)))
+  r.post('/webhooks/:gateway', rateLimit('RL_PAYMENT_WEBHOOK'), async (c) => webhookResponse(c, await service.donationWebhook(ctx(c), c.req.param('gateway'), await c.req.text(), c.req.raw.headers)))
   r.get('/payment-status/:gateway/:reference', cors('GET, OPTIONS'), rateLimit('RL_PAYMENT_STATUS'), async (c) =>
     c.json(await service.paymentStatus(ctx(c), c.req.param('gateway'), c.req.param('reference'))),
   )

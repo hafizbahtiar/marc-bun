@@ -334,7 +334,10 @@ export async function requestClaim(ctx: Omit<LegacyCtx, 'userId' | 'actor'>, ema
     console.error(JSON.stringify({ level: 'error', msg: 'legacy claim token', error: String(err) }))
     return
   }
-  const link = `${ctx.config.PUBLIC_BASE_URL.replace(/\/+$/, '')}/claim-account?token=${token}`
+  // Halaman frontend (marc_next). Kosong = PUBLIC_BASE_URL/claim-account (marc_go:
+  // backend tiada laluan itu - pautan emel 404).
+  const base = ctx.config.CLAIM_ACCOUNT_URL || `${ctx.config.PUBLIC_BASE_URL.replace(/\/+$/, '')}/claim-account`
+  const link = `${base}?token=${token}`
   if (!emailEnabled(ctx.config)) {
     // Pautan = kelayakan: dilog di development sahaja.
     if (ctx.config.ENVIRONMENT !== 'production') console.log(JSON.stringify({ level: 'info', msg: 'legacy claim link (emel belum dikonfigurasi)', link }))

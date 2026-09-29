@@ -21,6 +21,7 @@ const schema = z.object({
 
   PUBLIC_BASE_URL: optional,
   EMAIL_VERIFY_URL: optional,
+  CLAIM_ACCOUNT_URL: optional,
   PASSWORD_RESET_URL: optional,
   CERTIFICATE_VERIFY_URL: optional,
   REGISTRATION_PAYMENT_RETURN_URL: optional,
@@ -63,7 +64,7 @@ export type Config = z.infer<typeof schema>
 // Senarai kunci - dipakai oleh scripts/secrets-check.ts.
 export const CONFIG_KEYS = Object.keys(schema.shape) as (keyof Config)[]
 
-export class ConfigError extends Error {}
+export class ConfigError extends Error { }
 
 export function getConfig(env: object): Config {
   const result = schema.safeParse(env)

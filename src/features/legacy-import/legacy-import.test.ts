@@ -7,8 +7,8 @@ let h: Harness
 let sa: string
 const quiet = { log: console.log, error: console.error }
 beforeAll(async () => {
-  console.log = () => {}
-  console.error = () => {}
+  console.log = () => { }
+  console.error = () => { }
   h = await testApp()
   await h.db.prepare("INSERT OR IGNORE INTO departments (code, name) VALUES ('BPI', 'Bahagian BPI')").run()
   sa = await tokenFor((await seedMember(h, { role: ROLE.superadmin })).id)
@@ -143,6 +143,12 @@ describe('import & tuntutan', () => {
       [204, ''],
     ])
     expect(await h.body(await request({ email: 'bukan-emel', staff_id: 'x' }))).toEqual({ error: 'Format email tidak sah' })
+
+    // Emel dikonfigurasi → pautan ke halaman frontend (bukan PUBLIC_BASE_URL backend).
+    h.sent.emails.length = 0
+    await h.request('/auth/legacy-member-claim/request', { method: 'POST', json: cases[0] }, { RESEND_API_KEY: 're_x', EMAIL_FROM: 'MARC <a@b.my>', CLAIM_ACCOUNT_URL: 'https://marc.test/claim-account' })
+    expect(h.sent.emails.map((e) => [e.to, e.subject])).toEqual([[email, 'Tuntut akaun MARC']])
+    expect(h.sent.emails[0]!.html).toContain('href="https://marc.test/claim-account?token=')
 
     // Pautan hanya dilog di development (emel belum dikonfigurasi dalam ujian) - token dijana semula di sini.
     const token = `tok-${u}`

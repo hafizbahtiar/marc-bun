@@ -6,8 +6,8 @@ import { activitySweep, runReconcile, runRegistrationSweep } from './jobs'
 let h: Harness
 const quiet = { log: console.log, error: console.error }
 beforeAll(async () => {
-  console.log = () => {}
-  console.error = () => {}
+  console.log = () => { }
+  console.error = () => { }
   h = await testApp({ REGISTRATION_PAYMENT_RETURN_URL: 'https://marc.test/bayar', ACTIVITY_PAYMENT_RETURN_URL: '' })
 }, 60_000)
 afterAll(async () => {
@@ -68,6 +68,10 @@ describe('derma', () => {
     expect(h.sent.emails.map((e) => [e.to, e.subject, e.attachments?.[0]?.filename])).toEqual([['ali@mail.my', 'Terima kasih kerana menyokong MARC', `Resit-Sokongan-MARC-${ref}.pdf`]])
     // raw_payload direkod sebelum parse.
     expect((await h.row("SELECT COUNT(*) AS n FROM payment_logs WHERE event = 'webhook_received' AND raw_payload LIKE ?", `%${ref}%`))!.n).toBe(2)
+
+    // raw_payload dipotong - webhook awam tidak boleh memenuhkan D1.
+    await h.request('/webhooks/stripe', { method: 'POST', body: JSON.stringify({ ref: `big-${ref}`, status: 'ignored', pad: 'x'.repeat(100_000) }) })
+    expect((await h.row("SELECT length(raw_payload) AS n FROM payment_logs WHERE raw_payload LIKE ?", `%big-${ref}%`))!.n).toBe(16 * 1024)
 
     expect([(await hook('/webhooks/stripe', ref, 'bad')).status, (await hook('/webhooks/stripe', ref, 'ignored')).status, (await hook('/webhooks/tiada', ref, 'x')).status]).toEqual([400, 200, 503])
   })
